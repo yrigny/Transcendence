@@ -1,0 +1,14 @@
+
+services:
+  myapp:
+    build: .
+    ports:
+      - "6789:6789"
+    volumes:
+      - db-data:/app/volume/database
+      - uploads:/app/volume/uploads
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  uploads:

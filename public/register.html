@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<!-- <h1 class="text-3xl font-bold mb-8 text-center">Pong Game</h1> -->
+
+<div class="bg-gray-800 p-12 rounded-lg shadow-lg w-full max-w-md text-center">
+
+	<h2 class="text-2xl font-semibold mb-4">Register</h2>
+
+	<form class="flex flex-col space-y-5" 
+			action="/register" method="POST" enctype="multipart/form-data" novalidate>
+		<input type="text" name="username" placeholder="Username" required 
+				class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+		
+		<input type="password" name="password" placeholder="Password" required 
+				class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+		
+		<input type="password" name="confirmPassword" placeholder="Confirm Password" required 
+				class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+		
+		<label for="avatar" class="text-white text-base text-sm">Upload Your Avatar</label>
+		<input type="file" name="avatar" accept="image/*"
+				class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm">
+		
+		<!-- <div class="flex flex-col items-center space-y-3">
+			<label for="avatar" class="text-white text-base">Choose Your Avatar</label>
+			<div class="flex space-x-3">
+				<input type="radio" id="avatar1" name="avatar" value="default.png" class="hidden" required>
+				<label for="avatar1" class="cursor-pointer"><img src="/avatars/default.png" alt="Avatar 1" class="w-12 h-12 rounded-full avatar-img"></label>
+				
+				<input type="radio" id="avatar2" name="avatar" value="boy.png" class="hidden" required>
+				<label for="avatar2" class="cursor-pointer"><img src="/avatars/boy.png" alt="Avatar 2" class="w-12 h-12 rounded-full avatar-img"></label>
+				
+				<input type="radio" id="avatar3" name="avatar" value="girl.png" class="hidden" required>
+				<label for="avatar3" class="cursor-pointer"><img src="/avatars/girl.png" alt="Avatar 3" class="w-12 h-12 rounded-full avatar-img"></label>
+
+				<input type="radio" id="avatar4" name="avatar" value="dog.png" class="hidden" required>
+				<label for="avatar4" class="cursor-pointer"><img src="/avatars/dog.png" alt="Avatar 4" class="w-12 h-12 rounded-full avatar-img"></label>
+				
+				<input type="radio" id="avatar5" name="avatar" value="cat.png" class="hidden" required>
+				<label for="avatar5" class="cursor-pointer"><img src="/avatars/cat.png" alt="Avatar 5" class="w-12 h-12 rounded-full avatar-img"></label>
+			</div>
+		</div> -->
+
+		<button type="submit"
+				class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 rounded transition duration-200">
+			Register
+		</button>
+	</form>
+
+	<div id="error-message" class="text-red-400 text-sm mt-2"></div>
+
+	<p class="mt-3 text-base">Already have an account? 
+		<a href="login.html" class="text-blue-300 hover:underline">Login here</a>
+	</p>
+</div>
+
+<!-- <style>
+	.avatar-img:hover {
+		border: 2px solid #00f;
+		transform: scale(1.1);
+		transition: transform 0.2s, border 0.2s;
+	}
+	input[type="radio"]:checked + label .avatar-img {
+		border: 2px solid #00f;
+	}
+</style> -->
+
+</html>
