@@ -7,6 +7,7 @@ export class GameRoom {
 		else if (players.length === 1)
 			console.log('Creating game room for ', players[0].userId, ' in single-player mode')
 		this.id = uuidv4()
+		this.gameStartTime = new Date().toISOString()
 		this.playerCount = players.length
 		this.players = players
 		this.state = this.initState()
@@ -98,9 +99,29 @@ export class GameRoom {
 		}
 	}
 	
-	endGame() {
+	async endGame() {
 		this.state.gaming = false
 		clearInterval(this.interval)
+		if (this.playerCount === 2) {
+			const gameData = {}
+			gameData.player1_id = this.players[0].userId
+			gameData.player2_id = this.players[1].userId
+			gameData.player1_score = this.state.scores.left
+			gameData.player2_score = this.state.scores.right
+			gameData.game_start_time = this.gameStartTime
+			gameData.game_end_time = new Date().toISOString()
+			try {
+				const response = await fetch('http://localhost:6789/matches', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(gameData),
+				});
+				const data = await response.json();
+				console.log("Game saved: ", data);
+			} catch (error) {
+				console.log("Failed to save game: ", error);
+			}
+		}
 		this.players.forEach(player => player.socket.close())
 	}
 }
