@@ -6,13 +6,14 @@ import path from 'node:path'
 import routes from './routes/routes.js'
 import dbConnector from './plugins/database.js'
 import fastifyWebsocket from '@fastify/websocket'
-import gameRoutes from './plugins/game.js'
+import gameRoutes from './game/game.js'
 import multipart from '@fastify/multipart'
-import registerRoutes from './routes/register.js'
+import userRoutes from './routes/user.js'
 import formbody from '@fastify/formbody'
 import fastifyJwt from '@fastify/jwt'
 import fastifyCookie from '@fastify/cookie'
-import loginRoutes from './routes/login.js'
+import authRoutes from './routes/auth.js'
+import matchesRoutes from './routes/matches.js'
 
 const fastify = Fastify({logger: true})
 export const ACTIVE_USERS = new Map()
@@ -27,12 +28,13 @@ fastify.register(dbConnector)
 await fastify.register(fastifyWebsocket)
 fastify.register(gameRoutes)
 await fastify.register(multipart)
-fastify.register(registerRoutes)
+fastify.register(userRoutes)
 await fastify.register(formbody)
 await fastify.register(fastifyCookie)
 await fastify.register(fastifyJwt, {secret: 'supersecret', 
   cookie: { cookieName: 'token', signed: false }})
-fastify.register(loginRoutes)
+fastify.register(authRoutes)
+fastify.register(matchesRoutes)
 
 
 try {

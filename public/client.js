@@ -35,7 +35,7 @@ const updateAuthUI = async () => {
 		isLoggedIn = data.loggedIn === true
 		username = data.username + " 🟢 " || ''
 	} catch (error) {
-		console.error('Login check failed:', err)
+		console.error('Login check failed:', error)
 	}
 	console.log('User logged in:', isLoggedIn, 'Username:', username)
 	document.getElementById('username').textContent = username
