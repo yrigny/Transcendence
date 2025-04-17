@@ -34,7 +34,6 @@ async function matchesRoutes(fastify, options) {
 			INSERT INTO matches (player1, player2, player1_score, player2_score, game_start_time, game_end_time) 
 			VALUES (?, ?, ?, ?, ?, ?)
 		`).run(player1_id, player2_id, player1_score, player2_score, formattedGameStartTime, formattedGameEndTime);
-
 		return { message: 'Match recorded!' };
 		} catch (error) {
 		console.error('Database Error:', error.message);
