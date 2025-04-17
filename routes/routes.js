@@ -25,21 +25,6 @@ async function routes(fastify, opts) {
   fastify.get('/register', async function (request, reply) {
     return reply.sendFile('index.html')
   })
-  fastify.get('/logout', async function (request, reply) {
-    const user = await request.jwtVerify()
-    ACTIVE_USERS.delete(user.username)
-    console.log('Logging out user: ', user.username)
-    reply.clearCookie('token', { path: '/' })
-    return reply.redirect('/home')
-  })
-  fastify.get('/auth/status', async function (request, reply) {
-    try {
-      const user = await request.jwtVerify()
-      reply.send({ loggedIn: true, username: user.username })
-    } catch (error) {
-      reply.send({ loggedIn: false })
-    }
-  })
 }
 
 export default routes

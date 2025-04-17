@@ -6,8 +6,9 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+import { ACTIVE_USERS } from '../server.js'
 
-async function registerRoutes(fastify, options) {
+async function authRoutes(fastify) {
 	fastify.post('/register', async (req, res) => {
 		const parts = req.parts()
 		const fields = {}
@@ -34,9 +35,7 @@ async function registerRoutes(fastify, options) {
 			console.error('Error processing multipart form:', err)
 			return res.status(400).send({ error: 'Error processing multipart form' })
 		}
-
 		const { username, password, confirmPassword } = fields
-
 		// validate the input
 		if (!username || !password) {
 			return res.status(400).send({ error: 'Username and password are required' })
@@ -58,5 +57,58 @@ async function registerRoutes(fastify, options) {
 		).run(username, hashedPassword, avatarInfo.filename)
 		return res.send({ message: 'User registered successfully!' })
 	})
+	
+	fastify.post('/login', async (req, res) => {
+		const { username, password } = req.body
+		// validate the input
+		if (!username || !password) {
+			return res.status(400).send({ error: 'Username and password are required' })
+		}
+		// check user exists and password is correct
+		const user = fastify.sqlite.prepare(
+			'SELECT * FROM users WHERE name = ?'
+		).get(username)
+		if (!user) {
+			return res.status(400).send({ error: 'User does not exist' })
+		}
+		const passwordMatch = await bcrypt.compare(password, user.password)
+		if (!passwordMatch) {
+			return res.status(400).send({ error: 'Invalid password' })
+		}
+		console.log('User logged in successfully: ', username)
+		const token = fastify.jwt.sign({ username })
+		console.log('Token generated: ', token)
+		// save active user in map
+		ACTIVE_USERS.set(username, { loggedInAt: Date.now() })
+		res.setCookie('token', token, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 60 * 60, // 1 hour
+		})
+		// print all active users
+		console.log('Active users: ')
+		ACTIVE_USERS.forEach((value, key) => {
+			console.log(key, value)
+		})
+		return res.redirect('/game')
+	})
+
+	fastify.get('/logout', async function (request, reply) {
+		const user = await request.jwtVerify()
+		ACTIVE_USERS.delete(user.username)
+		console.log('Logging out user: ', user.username)
+		reply.clearCookie('token', { path: '/' })
+		return reply.redirect('/home')
+	})
+	
+	fastify.get('/auth/status', async function (request, reply) {
+		try {
+		  const user = await request.jwtVerify()
+		  reply.send({ loggedIn: true, username: user.username })
+		} catch (error) {
+		  reply.send({ loggedIn: false })
+		}
+	})
 }
-export default registerRoutes
+
+export default authRoutes
