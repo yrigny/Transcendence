@@ -26,9 +26,9 @@ async function routes(fastify, opts) {
     return reply.sendFile('index.html')
   })
   fastify.get('/logout', async function (request, reply) {
-    console.log('Logging out user')
     const user = await request.jwtVerify()
     ACTIVE_USERS.delete(user.username)
+    console.log('Logging out user: ', user.username)
     reply.clearCookie('token', { path: '/' })
     return reply.redirect('/home')
   })

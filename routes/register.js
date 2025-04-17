@@ -17,9 +17,8 @@ async function registerRoutes(fastify, options) {
 				if (part.file) {
 					let uploadPath
 					if (part.filename.length === 0)
-						uploadPath = path.join(__dirname, '../volume/uploads', 'default_avatar.png')
-					else
-						uploadPath = path.join(__dirname, '../volume/uploads', part.filename)
+						part.filename = 'default_avatar.png'
+					uploadPath = path.join(__dirname, '../volume/uploads', part.filename)
 					pump(part.file, fs.createWriteStream(uploadPath))
 					avatarInfo = {
 						filename: part.filename,
@@ -56,7 +55,7 @@ async function registerRoutes(fastify, options) {
 		const hashedPassword = await bcrypt.hash(password, 10)
 		fastify.sqlite.prepare(
 			'INSERT INTO users (name, password, avatar) VALUES (?, ?, ?)'
-		).run(username, hashedPassword, avatarInfo.path)
+		).run(username, hashedPassword, avatarInfo.filename)
 		return res.send({ message: 'User registered successfully!' })
 	})
 }

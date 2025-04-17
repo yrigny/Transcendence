@@ -4,7 +4,6 @@ import { ACTIVE_USERS } from '../server.js'
 async function loginRoutes(fastify) {
 
 	fastify.post('/login', async (req, res) => {
-		console.log(req.body)
 		const { username, password } = req.body
 		// validate the input
 		if (!username || !password) {
@@ -31,8 +30,29 @@ async function loginRoutes(fastify) {
 			path: '/',
 			maxAge: 60 * 60, // 1 hour
 		})
+		// print all active users
+		console.log('Active users: ')
+		ACTIVE_USERS.forEach((value, key) => {
+			console.log(key, value)
+		})
 		return res.redirect('/game')
-	})	
+	})
+
+	fastify.get('/users/:name', async (request, reply) => {
+		try {
+			const { name } = request.params;
+			const row = fastify.sqlite.prepare(
+				'SELECT avatar FROM users WHERE name = ?'
+			).get(name);
+			if (!row) {
+				return reply.status(404).send({ error: "User not found" });
+			}
+			return { avatar: `/uploads/${row.avatar}` };
+		} catch (error) {
+			console.error(error);
+			return reply.status(500).send({ error: "Internal Server Error" });
+		}
+	})
 }
 
 export default loginRoutes

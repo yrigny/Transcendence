@@ -1,11 +1,12 @@
 'use strict'
 import Fastify from 'fastify'
 import FastifyStatic from '@fastify/static'
-import fastifyWebsocket from '@fastify/websocket'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import routes from './routes/routes.js'
 import dbConnector from './plugins/database.js'
+import fastifyWebsocket from '@fastify/websocket'
+import gameRoutes from './plugins/game.js'
 import multipart from '@fastify/multipart'
 import registerRoutes from './routes/register.js'
 import formbody from '@fastify/formbody'
@@ -20,9 +21,11 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 fastify.register(routes)
-fastify.register(FastifyStatic, { root: path.join(__dirname, 'public') })
-fastify.register(fastifyWebsocket)
+fastify.register(FastifyStatic, { root: path.join(__dirname, 'public'), prefix: '/' })
+fastify.register(FastifyStatic, { root: path.join(__dirname, 'volume/uploads'), prefix: '/uploads/', decorateReply: false })
 fastify.register(dbConnector)
+await fastify.register(fastifyWebsocket)
+fastify.register(gameRoutes)
 await fastify.register(multipart)
 fastify.register(registerRoutes)
 await fastify.register(formbody)
