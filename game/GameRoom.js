@@ -6,7 +6,6 @@ export class GameRoom {
 		this.id = uuidv4()
 		this.players = [player1, player2]
 		this.state = this.initState()
-		// this.broadcastState()
 		this.putPlayerInfo()
 		this.startGameLoop()
 	}
@@ -28,8 +27,8 @@ export class GameRoom {
 		msg.type = "gameStart"
 		msg.player1 = this.players[0].userId
 		msg.player2 = this.players[1].userId
-		this.players[0].socket.send(JSON.stringify(msg))
-		this.players[1].socket.send(JSON.stringify(msg))
+			this.players[0].socket.send(JSON.stringify(msg))
+			this.players[1].socket.send(JSON.stringify(msg))
 		console.log('Player info sent to both players')
 	}
 
@@ -79,8 +78,8 @@ export class GameRoom {
 		msg.gaming = this.state.gaming
 		// console.log('Broadcasting state: ', JSON.stringify(msg))
 		if (this.state.gaming) {
-			this.players[0].socket.send(JSON.stringify(msg))
-			this.players[1].socket.send(JSON.stringify(msg))
+				this.players[0].socket.send(JSON.stringify(msg))
+				this.players[1].socket.send(JSON.stringify(msg))
 		}
 	}
 	

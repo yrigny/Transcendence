@@ -13,19 +13,38 @@ async function gameRoutes(fastify) {
         if (data.type === 'join') {
           userId = data.userId
           console.log('User joined:', userId)
-          if (waitingPool.length > 0) {
-            const opponent = waitingPool.pop()
-            const gameRoom = new GameRoom(
-              { userId, socket: conn }, // player1
-              opponent // player2
-            )
-            gameRooms.set(gameRoom.id, gameRoom)
-            userToGame.set(userId, gameRoom.id)
-            userToGame.set(opponent.userId, gameRoom.id)
+          // if (waitingPool.length > 0 && !waitingPool.find(p => p.userId === userId)) {
+          //   const opponent = waitingPool.pop()
+          //   const gameRoom = new GameRoom(
+          //     { userId, socket: conn }, // player1
+          //     opponent // player2
+          //   )
+          //   gameRooms.set(gameRoom.id, gameRoom)
+          //   userToGame.set(userId, gameRoom.id)
+          //   userToGame.set(opponent.userId, gameRoom.id)
+          // }
+          // else if (!waitingPool.find(p => p.userId === userId)) {
+          //   waitingPool.push({ userId, socket: conn })
+          //   console.log(userId, ' is waiting for an opponent')
+          // }
+          if (!waitingPool.find(p => p.userId === userId)) {
+            waitingPool.push({ userId, socket: conn })
+            console.log(userId, ' added to waiting pool')
           }
           else {
-            waitingPool.push({ userId, socket: conn })
-            console.log(userId, ' is waiting for an opponent')
+            conn.close()
+            console.log('Closing existing connection for user:', userId)
+          }
+          if (waitingPool.length > 1) {
+            const player1 = waitingPool.pop()
+            const player2 = waitingPool.pop()
+            const gameRoom = new GameRoom(
+              { userId: player1.userId, socket: player1.socket },
+              { userId: player2.userId, socket: player2.socket }
+            )
+            gameRooms.set(gameRoom.id, gameRoom)
+            userToGame.set(player1.userId, gameRoom.id)
+            userToGame.set(player2.userId, gameRoom.id)
           }
           console.log('waitingPool length: ', waitingPool.length)
         }
@@ -34,16 +53,33 @@ async function gameRoutes(fastify) {
           // find gameRoom by userId
           const gameId = userToGame.get(userId)
           const gameRoom = gameRooms.get(gameId)
-          // find paddle by userId
-          const paddleIndex = gameRoom.players.findIndex(p => p.userId === userId)
-          if (data.wKey && paddleIndex === 0 && gameRoom.state.paddles[0].y > 10)
-            gameRoom.state.paddles[0].y -= 10
-          if (data.sKey && paddleIndex === 0 && gameRoom.state.paddles[0].y < 310)
-            gameRoom.state.paddles[0].y += 10
-          if (data.oKey && paddleIndex === 1 && gameRoom.state.paddles[1].y < 10)
-            gameRoom.state.paddles[1].y -= 10
-          if (data.lKey && paddleIndex === 1 && gameRoom.state.paddles[1].y > 310)
-            gameRoom.state.paddles[1].y += 10
+          if (!gameRoom) {
+            console.error('Game room not found for gameId:', gameId)
+            return
+          }
+          // single-player mode
+          if (gameRoom.players[0].userId === gameRoom.players[1].userId) {
+            if (data.wKey && gameRoom.state.paddles[0].y > 10)
+              gameRoom.state.paddles[0].y -= 10
+            if (data.sKey && gameRoom.state.paddles[0].y < 310)
+              gameRoom.state.paddles[0].y += 10
+            if (data.oKey && gameRoom.state.paddles[1].y < 10)
+              gameRoom.state.paddles[1].y -= 10
+            if (data.lKey && gameRoom.state.paddles[1].y > 310)
+              gameRoom.state.paddles[1].y += 10
+          }
+          // double-player mode
+          else {
+            const paddleIndex = gameRoom.players.findIndex(p => p.userId === userId)
+            if (data.wKey && paddleIndex === 0 && gameRoom.state.paddles[0].y > 10)
+              gameRoom.state.paddles[0].y -= 10
+            if (data.sKey && paddleIndex === 0 && gameRoom.state.paddles[0].y < 310)
+              gameRoom.state.paddles[0].y += 10
+            if (data.oKey && paddleIndex === 1 && gameRoom.state.paddles[1].y < 10)
+              gameRoom.state.paddles[1].y -= 10
+            if (data.lKey && paddleIndex === 1 && gameRoom.state.paddles[1].y > 310)
+              gameRoom.state.paddles[1].y += 10
+          }
         }
       })
 
