@@ -1,10 +1,14 @@
 import { v4 as uuidv4 } from 'uuid'
 
 export class GameRoom {
-	constructor(player1, player2) {
-		console.log('Creating game room for ', player1.userId, ' and ', player2.userId)
+	constructor(players) {
+		if (players.length === 2)
+			console.log('Creating game room for ', players[0].userId, ' and ', players[1].userId)
+		else if (players.length === 1)
+			console.log('Creating game room for ', players[0].userId, ' in single-player mode')
 		this.id = uuidv4()
-		this.players = [player1, player2]
+		this.playerCount = players.length
+		this.players = players
 		this.state = this.initState()
 		this.putPlayerInfo()
 		this.startGameLoop()
@@ -16,7 +20,7 @@ export class GameRoom {
 			ball: { x: 300, y: 200, vx: 4, vy: 4 },
 			paddles: [
 				{ userId: this.players[0].userId, y: 160 },
-				{ userId: this.players[1].userId, y: 160 }
+				{ userId: this.playerCount === 1 ? this.players[0].userId : this.players[1].userId, y: 160 }
 			],
 			scores: { left: 0, right: 0 }
 		}
@@ -24,12 +28,19 @@ export class GameRoom {
 
 	putPlayerInfo() {
 		const msg = {}
-		msg.type = "gameStart"
+		if (this.playerCount === 1)
+			msg.type = "gameStart-single"
+		else if (this.playerCount === 2)
+			msg.type = "gameStart-double"
+		console.log('Sending player info to player 1')
 		msg.player1 = this.players[0].userId
-		msg.player2 = this.players[1].userId
-			this.players[0].socket.send(JSON.stringify(msg))
+		if (this.playerCount === 2)
+			msg.player2 = this.players[1].userId
+		this.players[0].socket.send(JSON.stringify(msg))
+		if (this.playerCount === 2) {
 			this.players[1].socket.send(JSON.stringify(msg))
-		console.log('Player info sent to both players')
+		}
+		console.log('Player info sent to players')
 	}
 
 	startGameLoop() {
@@ -78,7 +89,8 @@ export class GameRoom {
 		msg.gaming = this.state.gaming
 		// console.log('Broadcasting state: ', JSON.stringify(msg))
 		if (this.state.gaming) {
-				this.players[0].socket.send(JSON.stringify(msg))
+			this.players[0].socket.send(JSON.stringify(msg))
+			if (this.playerCount === 2)
 				this.players[1].socket.send(JSON.stringify(msg))
 		}
 	}
