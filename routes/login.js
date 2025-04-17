@@ -38,7 +38,7 @@ async function loginRoutes(fastify) {
 		return res.redirect('/game')
 	})
 
-	fastify.get('/users/:name', async (request, reply) => {
+	fastify.get('/users/:name/avatar', async (request, reply) => {
 		try {
 			const { name } = request.params;
 			const row = fastify.sqlite.prepare(

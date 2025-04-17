@@ -28,15 +28,18 @@ export class GameRoom {
 
 	putPlayerInfo() {
 		const msg = {}
+		// add game type to message
 		if (this.playerCount === 1)
 			msg.type = "gameStart-single"
 		else if (this.playerCount === 2)
 			msg.type = "gameStart-double"
-		console.log('Sending player info to player 1')
+		// add player userid to message
 		msg.player1 = this.players[0].userId
 		if (this.playerCount === 2)
 			msg.player2 = this.players[1].userId
+		// send info to player1
 		this.players[0].socket.send(JSON.stringify(msg))
+		// if there's a second player, send info to player2
 		if (this.playerCount === 2) {
 			this.players[1].socket.send(JSON.stringify(msg))
 		}
