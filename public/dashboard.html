@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!-- Main Content -->
+<div class="flex-1 flex flex-col">
+        
+	<main class="p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+		<!-- Profile -->
+		<div class="bg-white px-6 py-4 rounded-lg shadow-md border-l-4 border-purple-500">
+			<h3 class="text-2xl py-2 font-semibold text-indigo-700">Profile</h3>
+			<!-- Username -->
+			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 items-center">
+				<dt class="text-sm/6 font-medium text-gray-900">Username</dt>
+				<dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-1 sm:mt-0">yifan</dd>
+				<button class="text-sm text-indigo-600 hover:underline">Edit</button>
+			</div>
+			<!-- Email -->
+			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 items-center">
+				<dt class="text-sm/6 font-medium text-gray-900">Email</dt>
+				<dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-1 sm:mt-0">yifan@gmail.com</dd>
+				<button class="text-sm text-indigo-600 hover:underline">Edit</button>
+			</div>
+			<!-- Password -->
+			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 items-center">
+				<dt class="text-sm/6 font-medium text-gray-900">Password</dt>
+				<dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-1 sm:mt-0">••••••••</dd>
+				<button class="text-sm text-indigo-600 hover:underline">Edit</button>
+			</div>
+			<!-- Avatar -->
+			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 items-center">
+				<dt class="text-sm/6 font-medium text-gray-900">Avatar</dt>
+				<img id="player2-avatar" src="" class="h-10 w-10 rounded-full border-4 border-gray-200 bg-gray-300"/>
+				<button class="text-sm text-indigo-600 hover:underline">Edit</button>
+			</div>
+		</div>
+		<!-- Stats Overview -->
+		<div class="bg-white px-6 py-4 rounded-lg shadow-md border-l-4 border-purple-500">
+			<h3 class="text-2xl py-2 font-semibold text-indigo-700">Stats</h3>
+			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+			  <dt class="text-sm/6 font-medium text-gray-900">Total Game Played</dt>
+			  <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">5</dd>
+			</div>
+			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+			  <dt class="text-sm/6 font-medium text-gray-900">Total Win</dt>
+			  <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">3</dd>
+			</div>
+			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+			  <dt class="text-sm/6 font-medium text-gray-900">Total Loss</dt>
+			  <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">2</dd>
+			</div>
+			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+			  <dt class="text-sm/6 font-medium text-gray-900">Win Rate</dt>
+			  <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0">60%</dd>
+			</div>
+		</div>
+	</main>
+
+	<!-- Match Records Table -->
+	<section class="p-6">
+		<h2 class="text-white text-2xl font-semibold mb-2">Match Records</h2>
+		<div class="bg-white rounded-lg shadow-md p-6 overflow-x-auto min-h-[600px] min-w-[600px]">
+			<table class="w-full text-left border-collapse">
+				<thead>
+					<tr class="bg-indigo-600 text-white">
+						<th class="p-3 border-b">Result</th>
+						<th class="p-3 border-b">Player 1</th>
+						<th class="p-3 border-b">Player 2</th>
+						<th class="p-3 border-b">Score</th>
+						<th class="p-3 border-b">Date</th>
+					</tr>
+				</thead>
+				<tbody id="match-records">
+					<!-- dynamic statics here -->
+				</tbody>
+			</table>
+		</div>
+	</section>
+</div>
