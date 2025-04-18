@@ -17,8 +17,38 @@ function displayDashboard() {
 		});
 }
 
+async function fillUserData() {
+	try {
+		const res = await fetch('/auth/status', {
+			method: 'GET',
+			credentials: 'include'
+		})
+		const data = await res.json()
+		if (data.loggedIn === true) {
+			// search for the user in the database
+			const user = await fetch(`/users/${data.username}`, {
+				method: 'GET',
+				credentials: 'include'
+			})
+			const userData = await user.json()
+			if (userData) {
+				const name = document.getElementById('username-display');
+				const email = document.getElementById('email-display');
+				const avatar = document.getElementById('avatar-display');
+				name.textContent = userData.name;
+				// email.textContent = userData.email;
+				avatar.src = `/uploads/${userData.avatar}`;
+			}
+
+		}
+	} catch (error) {
+		console.error('Login check failed:', error)
+	}
+}
+
 async function fillData() {
 	console.log('Filling data...');
+	fillUserData();
 	const editButtons = document.querySelectorAll('.px-4.py-1 button');
 
 	// Add click event listeners to each edit button
