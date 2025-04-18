@@ -90,7 +90,7 @@ async function authRoutes(fastify) {
 		ACTIVE_USERS.forEach((value, key) => {
 			console.log(key, value)
 		})
-		return res.redirect('/game')
+		return res.redirect('/home')
 	})
 
 	fastify.get('/logout', async function (request, reply) {
