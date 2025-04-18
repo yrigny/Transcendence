@@ -25,6 +25,9 @@ async function routes(fastify, opts) {
   fastify.get('/register', async function (request, reply) {
     return reply.sendFile('index.html')
   })
+  fastify.get('/dashboard', async function (request, reply) {
+    return reply.sendFile('index.html')
+  })
 }
 
 export default routes

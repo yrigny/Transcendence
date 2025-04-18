@@ -2,6 +2,7 @@ import displayHome from "./displayHome.js";
 import displayGame from "./displayGame.js";
 import displayLogin from "./displayLogin.js";
 import displayRegister from "./displayRegister.js";
+import displayDashboard from "./displayDashboard.js";
 
 const render = () => {
 	switch (window.location.pathname) {
@@ -19,6 +20,12 @@ const render = () => {
 			break;
 		case "/register":
 			displayRegister();
+			break;
+		case "/dashboard":
+			displayDashboard();
+			break;
+		default:
+			displayHome();
 			break;
 	}
 }
