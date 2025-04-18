@@ -17,7 +17,7 @@ function displayDashboard() {
 		});
 }
 
-async function fillUserData() {
+async function getUsername() {
 	try {
 		const res = await fetch('/auth/status', {
 			method: 'GET',
@@ -25,30 +25,89 @@ async function fillUserData() {
 		})
 		const data = await res.json()
 		if (data.loggedIn === true) {
-			// search for the user in the database
-			const user = await fetch(`/users/${data.username}`, {
-				method: 'GET',
-				credentials: 'include'
-			})
-			const userData = await user.json()
-			if (userData) {
-				const name = document.getElementById('username-display');
-				const email = document.getElementById('email-display');
-				const avatar = document.getElementById('avatar-display');
-				name.textContent = userData.name;
-				// email.textContent = userData.email;
-				avatar.src = `/uploads/${userData.avatar}`;
-			}
+			return data.username
+		}
+	} catch (error) {
+		console.error('Login check failed:', error)
+	}
+	return null
+}
 
+async function fillProfile(username) {
+	try {
+		const user = await fetch(`/users/${username}`, {
+			method: 'GET',
+			credentials: 'include'
+		})
+		const userData = await user.json()
+		if (userData) {
+			const name = document.getElementById('username-display');
+			const email = document.getElementById('email-display');
+			const avatar = document.getElementById('avatar-display');
+			name.textContent = userData.name;
+			// email.textContent = userData.email;
+			avatar.src = `/uploads/${userData.avatar}`;
 		}
 	} catch (error) {
 		console.error('Login check failed:', error)
 	}
 }
 
+async function fillStatsAndHistory(username) {
+	try {
+		const totalGamePlayed = document.getElementById('total-game');
+		const totalWin = document.getElementById('total-win');
+		const totalLoss = document.getElementById('total-loss');
+		const winningPercentage = document.getElementById('winning-percentage');
+		const matchHistory = document.getElementById('match-history');
+		const res = await fetch('/matches', {
+			method: 'GET',
+			credentials: 'include'
+		})
+		const data = await res.json()
+		if (!data || !Array.isArray(data)) return
+		let winCount = 0
+		let lossCount = 0
+		let totalCount = 0
+		matchHistory.innerHTML = ''
+		// Loop through the matches and count wins/losses, and display them
+		data.forEach(match => {
+			console.log(match)
+			const { player1, player2, player1_score, player2_score, game_end_time } = match
+			const isPlayer1 = player1 === username
+			const isPlayer2 = player2 === username
+			if (isPlayer1)
+				if (player1_score > player2_score) winCount++
+				else lossCount++
+			if (isPlayer2)
+				if (player2_score > player1_score) winCount++
+				else lossCount++
+			const winner = player1_score > player2_score ? player1 : player2
+			const row = document.createElement('tr');
+			row.className = 'hover:bg-gray-100';
+			row.innerHTML = `
+				<td class="p-3 text-indigo-600 border-b">${winner} 🏆</td>
+				<td class="p-3 text-indigo-600 border-b">${player1} - ${player2}</td>
+				<td class="p-3 text-indigo-600 border-b">${player1_score} - ${player2_score}</td>
+				<td class="p-3 text-indigo-600 border-b">${new Date(game_end_time).toLocaleString()}</td>
+			`;
+			matchHistory.appendChild(row);
+		})
+		totalCount = winCount + lossCount
+		totalGamePlayed.textContent = totalCount.toString()
+		totalWin.textContent = winCount.toString()
+		totalLoss.textContent = lossCount.toString()
+		winningPercentage.textContent = totalCount === 0 ? 'N/A' : Math.round((winCount / totalGamePlayed.textContent) * 100) + '%'
+	} catch (error) {
+		console.error('Error fetching match history:', error)
+	}
+}
+
 async function fillData() {
 	console.log('Filling data...');
-	fillUserData();
+	const username = await getUsername();
+	fillProfile(username);
+	fillStatsAndHistory(username);
 	const editButtons = document.querySelectorAll('.px-4.py-1 button');
 
 	// Add click event listeners to each edit button

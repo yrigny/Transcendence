@@ -55,19 +55,19 @@
 			<h3 class="text-2xl py-2 font-semibold text-indigo-700">Stats</h3>
 			<div class="px-4 py-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
 			  <dt class="text-base font-medium text-gray-900">Total Game Played</dt>
-			  <dd class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0 text-center">5</dd>
+			  <dd id="total-game" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0 text-center">5</dd>
 			</div>
 			<div class="px-4 py-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
 			  <dt class="text-base font-medium text-gray-900">Total Win</dt>
-			  <dd class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0 text-center">3</dd>
+			  <dd id="total-win" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0 text-center">3</dd>
 			</div>
 			<div class="px-4 py-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
 			  <dt class="text-base font-medium text-gray-900">Total Loss</dt>
-			  <dd class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0 text-center">2</dd>
+			  <dd id="total-loss" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0 text-center">2</dd>
 			</div>
 			<div class="px-4 py-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
-			  <dt class="text-base font-medium text-gray-900">Win Rate</dt>
-			  <dd class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0 text-center">60%</dd>
+			  <dt class="text-base font-medium text-gray-900">Winning Percentage</dt>
+			  <dd id="winning-percentage" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0 text-center">60%</dd>
 			</div>
 		</div>
 	</main>
@@ -79,14 +79,13 @@
 			<table class="w-full text-left border-collapse">
 				<thead>
 					<tr class="bg-indigo-600 text-white">
-						<th class="p-3 border-b">Result</th>
-						<th class="p-3 border-b">Player 1</th>
-						<th class="p-3 border-b">Player 2</th>
+						<th class="p-3 border-b">Winner</th>
+						<th class="p-3 border-b">Players</th>
 						<th class="p-3 border-b">Score</th>
 						<th class="p-3 border-b">Date</th>
 					</tr>
 				</thead>
-				<tbody id="match-records">
+				<tbody id="match-history">
 					<!-- dynamic statics here -->
 				</tbody>
 			</table>
