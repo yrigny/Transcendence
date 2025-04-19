@@ -38,14 +38,16 @@ const updateAuthUI = async () => {
 			method: 'GET',
 			credentials: 'include'
 		})
-		const data = await res.json()
-		isLoggedIn = data.loggedIn === true
-		username = data.username + " 🟢 " || ''
+		if (res.ok) {
+			const data = await res.json()
+			isLoggedIn = data.loggedIn === true
+			username = data.username + " 🟢 " || ''
+		}
 	} catch (error) {
 		console.error('Login check failed:', error)
 	}
 	console.log('User logged in:', isLoggedIn, 'Username:', username)
-	document.getElementById('username').textContent = username
+	document.getElementById('logged-in-user').textContent = username
 	document.getElementById('auth-buttons').style.display = isLoggedIn ? 'none' : 'block';
 	document.getElementById('logout-section').style.display = isLoggedIn ? 'block' : 'none';
 }
