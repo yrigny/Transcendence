@@ -10,7 +10,9 @@ function displayDashboard() {
 		.then(html => {
 			const targetDiv = document.getElementById('dashboard-inject');
 			targetDiv.innerHTML = html;
-			document.addEventListener('DOMContentLoaded', fillData());
+			fillData();
+			buttonController();
+			// inputController();
 		})
 		.catch(error => {
 			console.error('Failed to fetch dashboard.html:', error);
@@ -45,7 +47,7 @@ async function fillProfile(username) {
 			const email = document.getElementById('email-display');
 			const avatar = document.getElementById('avatar-display');
 			name.textContent = userData.name;
-			// email.textContent = userData.email;
+			email.textContent = userData.email;
 			avatar.src = `/uploads/${userData.avatar}`;
 		}
 	} catch (error) {
@@ -108,75 +110,89 @@ async function fillData() {
 	const username = await getUsername();
 	fillProfile(username);
 	fillStatsAndHistory(username);
-	const editButtons = document.querySelectorAll('.px-4.py-1 button');
+}
 
-	// Add click event listeners to each edit button
-	editButtons.forEach(button => {
-		button.addEventListener('click', function() {
-			const infoDiv = this.parentElement.parentElement;
-			const fieldType = infoDiv.querySelector('dt').textContent.trim().toLowerCase();
-			const valueElement = infoDiv.querySelector(fieldType === 'avatar' ? 'img' : 'dd');
-			const inputField = valueElement.parentElement.querySelector('input');
-			const saveButton = document.getElementById(fieldType + '-save');
-			const cancelButton = document.getElementById(fieldType + '-cancel');
+async function buttonController() {
+	const infoDivs = document.querySelectorAll('.email-info, .password-info, .avatar-info');
+	
+	infoDivs.forEach(infoDiv => {
+		console.log('Info div:', infoDiv);
+		const fieldType = infoDiv.querySelector('dt').textContent.trim().toLowerCase();
+		const valueElement = infoDiv.querySelector(fieldType === 'avatar' ? 'img' : 'dd');
+		const inputField = infoDiv.querySelector('input');
+		const editButton = document.getElementById(fieldType + '-edit');
+		const saveButton = document.getElementById(fieldType + '-save');
+		const cancelButton = document.getElementById(fieldType + '-cancel');
 
-			this.classList.add('hidden');
+		editButton.addEventListener("click", () => {
+			console.log('Edit button clicked:', fieldType);
+			editButton.classList.add('hidden');
 			saveButton.classList.remove('hidden');
 			cancelButton.classList.remove('hidden');
 			valueElement.classList.add('hidden');
 			inputField.classList.remove('hidden');
+		})
 
-			cancelButton.addEventListener('click', function() {
-				inputField.value = '';
-				inputField.classList.add('hidden');
-				valueElement.classList.remove('hidden');
-				saveButton.classList.add('hidden');
-				cancelButton.classList.add('hidden');
-				button.classList.remove('hidden');
-			})
+		cancelButton.addEventListener("click", () => {
+			console.log('Cancel button clicked:', fieldType);
+			editButton.classList.remove('hidden');
+			saveButton.classList.add('hidden');
+			cancelButton.classList.add('hidden');
+			valueElement.classList.remove('hidden');
+			inputField.classList.add('hidden');
+			inputField.value = '';
+			return
+		})
 
-			saveButton.addEventListener('click', async function() {
-				let newValue;
-				let formData = null;
-				if (fieldType === 'avatar') {
-					if (inputField.files.length === 0) {
-						alert('Please select an image');
-					}
-					else {
-						formData = new FormData();
-						formData.append('avatar', inputField.files[0]);
-						newValue = URL.createObjectURL(inputField.files[0]); // Temporary preview
-					}
-				} else {
-					newValue = inputField.value.trim();
-					if (newValue === '') {
-						alert(`${fieldType} cannot be empty`);
-					}
-					else {
-						formData = new FormData();
-						formData.append(fieldType, newValue);
-					}
+		saveButton.addEventListener("click", async () => {
+			console.log('Save button clicked:', fieldType);
+			editButton.classList.remove('hidden');
+			saveButton.classList.add('hidden');
+			cancelButton.classList.add('hidden');
+			valueElement.classList.remove('hidden');
+			inputField.classList.add('hidden');
+
+			let newValue;
+			let formData = null;
+			if (fieldType === 'avatar') {
+				if (inputField.files.length === 0) {
+					alert('Please select an image');
 				}
-				// try {
-				// 	const response = await fetch('/updateProfile', {
-				// 		method: 'POST',
-				// 		body: formData
-				// 	});
-				// 	if (!response.ok) {
-				// 		throw new Error('Network response was not ok');
-				// 	}
-				// 	const result = await response.json();
-				// 	console.log(result);
-				// } catch (error) {
-				// 	console.error('Error updating profile:', error);
-				// }
-
-				inputField.classList.add('hidden');
-				valueElement.classList.remove('hidden');
-				saveButton.classList.add('hidden');
-				cancelButton.classList.add('hidden');
-				button.classList.remove('hidden');
-			});
+				else {
+					formData = new FormData();
+					formData.append('avatar', inputField.files[0]);
+					newValue = URL.createObjectURL(inputField.files[0]); // Temporary preview
+				}
+			} else { // text fields
+				newValue = inputField.value.trim();
+				if (newValue === '') {
+					alert(`${fieldType} cannot be empty`);
+				}
+				else if (fieldType === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newValue)) {
+					alert('Please enter a valid email address');
+				}
+				else if (fieldType === 'password' && newValue.length < 6) {
+					alert('Password must be at least 6 characters long');
+				}
+				else { // input valid
+					formData = new FormData();
+					formData.append(fieldType, newValue);
+				}
+			}
+			if (formData) {
+				try {
+					const username = await getUsername();
+					const res = await fetch(`/users/${username}`, {
+						method: 'POST',
+						body: formData,
+					});
+					const result = await res.json();
+					alert(result.message);
+					fillProfile(username);
+				} catch (error) {
+					alert('Error updating profile:' + error.message);
+				}
+			}
 		})
 	})
 }

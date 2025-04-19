@@ -8,43 +8,37 @@
 			<!-- Username -->
 			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-2 sm:px-0 items-center">
 				<dt class="text-base font-medium text-gray-900">Username</dt>
-				<dd id="username-display" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0">yifan</dd>
-				<input type="text" id="username-input" class="rounded bg-gray-300 text-black px-2 w-34 hidden" />
-				<div id="username-edit" class="flex items-center justify-center sm:mt-0 mt-2">
-					<button class="text-sm/6 text-indigo-600 hover:underline">Edit</button>
-					<button id="username-save" class="hidden text-sm/6 ml-2 px-1 bg-purple-500 text-white rounded hover:bg-purple-600">Save</button>
-    				<button id="username-cancel" class="hidden text-sm/6 ml-2 px-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
-				</div>
+				<dd id="username-display" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0"></dd>
 			</div>
 			<!-- Email -->
-			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-2 sm:px-0 items-center">
+			<div class="email-info px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-2 sm:px-0 items-center">
 				<dt class="text-base font-medium text-gray-900">Email</dt>
-				<dd id="email-display" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0">yifan@gmail.com</dd>
+				<dd id="email-display" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0"></dd>
 				<input type="email" id="email-input" class="rounded bg-gray-300 text-black px-2 w-34 hidden" />
-				<div id="email-edit" class="flex items-center justify-center sm:mt-0 mt-2">
-					<button class="text-sm/6 text-indigo-600 hover:underline">Edit</button>
+				<div class="flex items-center justify-center sm:mt-0 mt-2">
+					<button id="email-edit" class="text-sm/6 text-indigo-600 hover:underline">Edit</button>
 					<button id="email-save" class="hidden text-sm/6 ml-2 px-1 bg-purple-500 text-white rounded hover:bg-purple-600">Save</button>
 					<button id="email-cancel" class="hidden text-sm/6 ml-2 px-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
 				</div>
 			</div>
 			<!-- Password -->
-			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-2 sm:px-0 items-center">
+			<div class="password-info px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-2 sm:px-0 items-center">
 				<dt class="text-base font-medium text-gray-900">Password</dt>
-				<dd id="password-display" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0">••••••••</dd>
+				<dd id="password-display" class="mt-1 text-base text-gray-700 sm:col-span-1 sm:mt-0">••••••</dd>
 				<input type="password" id="password-input" class="rounded bg-gray-300 text-black px-2 w-34 hidden" />
-				<div id="password-edit" class="flex items-center justify-center sm:mt-0 mt-2">
-					<button class="text-sm/6 text-indigo-600 hover:underline">Edit</button>
+				<div class="flex items-center justify-center sm:mt-0 mt-2">
+					<button id="password-edit" class="text-sm/6 text-indigo-600 hover:underline">Edit</button>
 					<button id="password-save" class="hidden text-sm/6 ml-2 px-1 bg-purple-500 text-white rounded hover:bg-purple-600">Save</button>
 					<button id="password-cancel" class="hidden text-sm/6 ml-2 px-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
 				</div>
 			</div>
 			<!-- Avatar -->
-			<div class="px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-2 sm:px-0 items-center">
+			<div class="avatar-info px-4 py-1 sm:grid sm:grid-cols-3 sm:gap-2 sm:px-0 items-center">
 				<dt class="text-base font-medium text-gray-900">Avatar</dt>
 				<img id="avatar-display" src="" class="h-10 w-10 rounded-full border-4 border-gray-200 bg-gray-300"/>
 				<input type="file" id="avatar-input" accept="image/*" class="rounded bg-gray-300 text-sm font-medium text-gray-700 px-2 h-10 w-34 hidden" />
-				<div id="avatar-edit" class="flex items-center justify-center sm:mt-0 mt-2">
-					<button class="text-sm/6 text-indigo-600 hover:underline">Edit</button>
+				<div class="flex items-center justify-center sm:mt-0 mt-2">
+					<button id="avatar-edit" class="text-sm/6 text-indigo-600 hover:underline">Edit</button>
 					<button id="avatar-save" class="hidden text-sm/6 ml-2 px-1 bg-purple-500 text-white rounded hover:bg-purple-600">Save</button>
 					<button id="avatar-cancel" class="hidden text-sm/6 ml-2 px-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
 				</div>
