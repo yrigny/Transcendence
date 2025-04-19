@@ -35,6 +35,9 @@ async function checkLogin() {
 			}
 			else
 				window.location.href = '/home';
+		}).catch(err => {
+			console.error('Error during login:', err);
+			alert('Login failed. Please try again.');
 		})
 	})
 }
