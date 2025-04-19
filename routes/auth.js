@@ -69,6 +69,7 @@ async function authRoutes(fastify) {
 	})
 	
 	fastify.post('/auth/login', async (req, res) => {
+		console.log('Login request received:', req.body)
 		const { username, password } = req.body
 		// validate the input
 		if (!username || !password) {

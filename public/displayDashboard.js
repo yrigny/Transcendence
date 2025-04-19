@@ -12,7 +12,6 @@ function displayDashboard() {
 			targetDiv.innerHTML = html;
 			fillData();
 			buttonController();
-			// inputController();
 		})
 		.catch(error => {
 			console.error('Failed to fetch dashboard.html:', error);
