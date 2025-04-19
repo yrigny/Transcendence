@@ -16,6 +16,7 @@ async function dbConnector(fastify) {
     db.prepare(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       avatar TEXT NOT NULL,
       register_time DATETIME DEFAULT CURRENT_TIMESTAMP
