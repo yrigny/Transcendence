@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename)
 import { ACTIVE_USERS } from '../server.js'
 
 async function authRoutes(fastify) {
-	fastify.post('/register', async (req, res) => {
+	fastify.post('/auth/register', async (req, res) => {
 		const parts = req.parts()
 		const fields = {}
 		let avatarInfo = null
@@ -35,10 +35,13 @@ async function authRoutes(fastify) {
 			console.error('Error processing multipart form:', err)
 			return res.status(400).send({ error: 'Error processing multipart form' })
 		}
-		const { username, password, confirmPassword } = fields
+		const { username, email, password, confirmPassword } = fields
 		// validate the input
 		if (!username || !password) {
 			return res.status(400).send({ error: 'Username and password are required' })
+		}
+		if (!email || !email.includes('@')) {
+			return res.status(400).send({ error: 'Valid email is required' })
 		}
 		if (password !== confirmPassword) {
 			return res.status(400).send({ error: 'Passwords do not match' })
@@ -50,15 +53,22 @@ async function authRoutes(fastify) {
 		if (existingUser) {
 			return res.status(400).send({ error: 'User already exists' })
 		}
+		// if email already exists, return error
+		const existingEmail = fastify.sqlite.prepare(
+			'SELECT * FROM users WHERE email = ?'
+		).get(email)
+		if (existingEmail) {
+			return res.status(400).send({ error: 'Email already exists' })
+		}
 		// insert the user into the database
 		const hashedPassword = await bcrypt.hash(password, 10)
 		fastify.sqlite.prepare(
-			'INSERT INTO users (name, password, avatar) VALUES (?, ?, ?)'
-		).run(username, hashedPassword, avatarInfo.filename)
+			'INSERT INTO users (name, email, password, avatar) VALUES (?, ?, ?, ?)'
+		).run(username, email, hashedPassword, avatarInfo.filename)
 		return res.send({ message: 'User registered successfully!' })
 	})
 	
-	fastify.post('/login', async (req, res) => {
+	fastify.post('/auth/login', async (req, res) => {
 		const { username, password } = req.body
 		// validate the input
 		if (!username || !password) {
@@ -93,7 +103,7 @@ async function authRoutes(fastify) {
 		return res.redirect('/home')
 	})
 
-	fastify.get('/logout', async function (request, reply) {
+	fastify.get('/auth/logout', async function (request, reply) {
 		const user = await request.jwtVerify()
 		ACTIVE_USERS.delete(user.username)
 		console.log('Logging out user: ', user.username)
@@ -103,10 +113,13 @@ async function authRoutes(fastify) {
 	
 	fastify.get('/auth/status', async function (request, reply) {
 		try {
-		  const user = await request.jwtVerify()
-		  reply.send({ loggedIn: true, username: user.username })
+			const user = await request.jwtVerify()
+			if (ACTIVE_USERS.has(user.username))
+				reply.send({ loggedIn: true, username: user.username })
+			else
+				reply.send({ loggedIn: false })
 		} catch (error) {
-		  reply.send({ loggedIn: false })
+			reply.send(error)
 		}
 	})
 }
