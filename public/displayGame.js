@@ -74,51 +74,51 @@ function draw(ctx, canvas, message) {
     }
 }
 
-async function putUserInfo(message, isSinglePlayer) {
+async function putUserInfo(message, isLocalGame) {
     const leftUserAvatar = document.getElementById("player1-avatar");
     const rightUserAvatar = document.getElementById("player2-avatar");
     const leftUserName = document.getElementById("player1");
     const rightUserName = document.getElementById("player2");
 
     leftUserAvatar.src = await getUserAvatarPath(message.player1);
-    rightUserAvatar.src = isSinglePlayer
+    rightUserAvatar.src = isLocalGame
         ? leftUserAvatar.src
         : await getUserAvatarPath(message.player2);
 
     leftUserName.innerText = message.player1;
-    rightUserName.innerText = isSinglePlayer ? message.player1 : message.player2;
+    rightUserName.innerText = isLocalGame ? message.player1 : message.player2;
 }
 
 async function initGame() {
-    const startDoublePlayerGame = document.getElementById("start-game");
-    const startSinglePlayerGame = document.getElementById("start-game-single");
+    const startRemoteGame = document.getElementById("start-remote-game");
+    const startLocalGame = document.getElementById("start-local-game");
 
-    startDoublePlayerGame.addEventListener("click", async () => {
+    startRemoteGame.addEventListener("click", async () => {
         await startGame(false);
     });
 
-    startSinglePlayerGame.addEventListener("click", async () => {
+    startLocalGame.addEventListener("click", async () => {
         await startGame(true);
     });
 }
 
-async function startGame(isSinglePlayer) {
-    console.log(`Initializing ${isSinglePlayer ? 'single' : 'double'}-player game...`);
+async function startGame(isLocalGame) {
+    console.log(`Initializing ${isLocalGame ? 'local' : 'remote'} game...`);
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
-    const userId = await getUserId();
+    const userId = await getUserId() || 'Local User';
     console.log('User ID:', userId);
 
     const socket = new WebSocket(`ws://${location.host}/ws`);
     socket.onopen = function () {
         console.log('WebSocket connection opened');
-        socket.send(JSON.stringify({ type: isSinglePlayer ? "join-single" : "join-double", userId }));
+        socket.send(JSON.stringify({ type: isLocalGame ? "join-single" : "join-double", userId }));
     };
 
     socket.onmessage = function (event) {
         const message = JSON.parse(event.data);
-        if (message.type === (isSinglePlayer ? "gameStart-single" : "gameStart-double")) {
-            putUserInfo(message, isSinglePlayer);
+        if (message.type === (isLocalGame ? "game-start-local" : "game-start-remote")) {
+            putUserInfo(message, isLocalGame);
         }
         if (message.type === "output") {
             draw(ctx, canvas, message);
