@@ -117,6 +117,11 @@ async function authRoutes(fastify) {
 	
 	fastify.get('/auth/status', async function (request, reply) {
 		try {
+			// Check if there's a token in the cookies
+			const token = request.cookies.token
+			if (!token) {
+				return reply.send({ loggedIn: false })
+			}
 			const user = await request.jwtVerify()
 			if (ACTIVE_USERS.has(user.username))
 				reply.send({ loggedIn: true, username: user.username })
