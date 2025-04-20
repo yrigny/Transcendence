@@ -31,9 +31,9 @@ export class GameRoom {
 		const msg = {}
 		// add game type to message
 		if (this.playerCount === 1)
-			msg.type = "gameStart-single"
+			msg.type = "game-start-local"
 		else if (this.playerCount === 2)
-			msg.type = "gameStart-double"
+			msg.type = "game-start-remote"
 		// add player userid to message
 		msg.player1 = this.players[0].userId
 		if (this.playerCount === 2)

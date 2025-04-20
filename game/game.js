@@ -44,6 +44,8 @@ async function gameRoutes(fastify) {
         )
         gameRooms.set(gameRoom.id, gameRoom)
         userToGame.set(userId, gameRoom.id)
+        console.log('gameRooms size: ', gameRooms.size)
+        console.log('userToGame size: ', userToGame.size)
       }
       if (data.type === 'input') {
         console.log('Input received:', data)

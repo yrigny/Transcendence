@@ -115,7 +115,6 @@ async function buttonController() {
 	const infoDivs = document.querySelectorAll('.email-info, .password-info, .avatar-info');
 	
 	infoDivs.forEach(infoDiv => {
-		console.log('Info div:', infoDiv);
 		const fieldType = infoDiv.querySelector('dt').textContent.trim().toLowerCase();
 		const valueElement = infoDiv.querySelector(fieldType === 'avatar' ? 'img' : 'dd');
 		const inputField = infoDiv.querySelector('input');
