@@ -86,6 +86,9 @@ async function authRoutes(fastify) {
 		if (!passwordMatch) {
 			return res.status(400).send({ error: 'Invalid password' })
 		}
+		if (ACTIVE_USERS.has(username)) {
+			return res.status(400).send({ error: 'User is already logged in somewhere else' })
+		}
 		console.log('User logged in successfully: ', username)
 		const token = fastify.jwt.sign({ username })
 		console.log('Token generated: ', token)
