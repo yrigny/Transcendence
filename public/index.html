@@ -16,18 +16,19 @@
 						<img class="h-10 w-auto" src="https://ponggame.io/images/buttonhome-sheet0.png" alt="Logo">
 					</a>
 				</div>
-				<div class="flex lg:hidden">
+				<!-- <div class="flex lg:hidden">
 					<button id="open-side-menu-button" type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-white">
 						<span class="sr-only">Open main menu</span>
 						<svg class="size-8" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
 						</svg>
 					</button>
-				</div>
+				</div> -->
 				<div class="hidden lg:flex lg:gap-x-12">
 					<a href="game" data-link class="text-sm/6 font-semibold text-white">Game</a>
 					<a href="tournament" data-link class="text-sm/6 font-semibold text-white">Tournament</a>
 					<a href="dashboard" data-link class="text-sm/6 font-semibold text-white">Dashboard</a>
+					<a href="friends" data-link class="text-sm/6 font-semibold text-white">Friends</a>
 					<a href="settings" data-link class="text-sm/6 font-semibold text-white">Settings</a>
 				</div>
 				<div id="user-control" class="hidden lg:flex lg:flex-1 lg:justify-end">
@@ -42,38 +43,6 @@
 					</div>
 				</div>
 			</nav>
-			<!-- Mobile menu, show/hide based on menu open state.
-			<div id="side-menu" class="lg:hidden" role="dialog" aria-modal="true">
-				<div class="fixed inset-0 z-50"></div>
-				<div class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
-					<div class="flex items-center justify-between">
-						<a href="#" class="-m-1.5 p-1.5">
-						<span class="sr-only">Navigation Bar</span>
-						<img class="h-10 w-auto" src="https://ponggame.io/images/buttonhome-sheet0.png" alt="Logo">
-						</a>
-						<button id="close-side-menu-button" type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700">
-							<span class="sr-only">Close menu</span>
-							<svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-							</svg>
-						</button>
-					</div>
-					<div class="mt-6 flow-root">
-						<div id="nav-sm" class="-my-6 divide-y divide-gray-500/10">
-							<div class="space-y-2 py-6">
-								<a href="game" data-link class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Game</a>
-								<a href="tournament" data-link class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Tournament</a>
-								<a href="dashboard" data-link class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Dashboard</a>
-								<a href="settings" data-link class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Settings</a>
-							</div>
-							<div class="py-6">
-								<a href="login" data-link class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Log in</a>
-								<a href="register" data-link class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Register</a>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div> -->
 		</header>
 	
 		<div id="content" class="relative isolate px-6 pt-14 lg:px-8">
@@ -81,6 +50,7 @@
 			<div id="game-inject"></div>
 			<div id="tournament-inject"></div>
 			<div id="dashboard-inject"></div>
+			<div id="friends-inject"></div>
 			<div id="settings-inject"></div>
 			<div id="login-inject"></div>
 			<div id="register-inject"></div>
