@@ -92,39 +92,23 @@ async function authRoutes(fastify) {
 		return res.send({ message: '2FA code sent to your email!' })
 	})
 
-	fastify.post('/auth/2fa/verify-enable', async (req, res) => {
-		const { username, code } = req.body
-		const entry = TWO_FA_CODES.get(username)
-		if (!entry || Date.now() > entry.expiresAt) {
-			return res.status(400).send({ error: 'Expired 2FA code' })
-		}
-		if (entry.code !== code) {
-			return res.status(400).send({ error: 'Invalid 2FA code' })
-		}
-		TWO_FA_CODES.delete(username)
+	fastify.post('/auth/2fa/enable', async (req, res) => {
+		const { username } = req.body
 		fastify.sqlite.prepare(
 			'UPDATE users SET two_fa_enabled = 1 WHERE name = ?'
 		).run(username)
 		return res.send({ message: '2FA enabled successfully!' })
 	})
 
-	fastify.post('/auth/2fa/verify-disable', async (req, res) => {
-		const { username, code } = req.body
-		const entry = TWO_FA_CODES.get(username)
-		if (!entry || Date.now() > entry.expiresAt) {
-			return res.status(400).send({ error: 'Expired 2FA code' })
-		}
-		if (entry.code !== code) {
-			return res.status(400).send({ error: 'Invalid 2FA code' })
-		}
-		TWO_FA_CODES.delete(username)
+	fastify.post('/auth/2fa/disable', async (req, res) => {
+		const { username } = req.body
 		fastify.sqlite.prepare(
 			'UPDATE users SET two_fa_enabled = 0 WHERE name = ?'
 		).run(username)
 		return res.send({ message: '2FA disabled successfully!' })
 	})
 
-	fastify.post('/auth/verify-login', async (req, res) => {
+	fastify.post('/auth/2fa/verify', async (req, res) => {
 		const { username, code } = req.body
 		const entry = TWO_FA_CODES.get(username)
 		if (!entry || Date.now() > entry.expiresAt) {
@@ -149,7 +133,7 @@ async function authRoutes(fastify) {
 		ACTIVE_USERS.forEach((value, key) => {
 			console.log(key, value)
 		})
-		return res.redirect('/home')
+		return res.status(200).send({ message: 'User logged in successfully!' })
 	})
 
 	fastify.post('/auth/login', async (req, res) => {
@@ -208,13 +192,13 @@ async function authRoutes(fastify) {
 			// Check if there's a token in the cookies
 			const token = request.cookies.token
 			if (!token) {
-				return reply.send({ loggedIn: false })
+				return reply.status(400).send({ loggedIn: false })
 			}
 			const user = await request.jwtVerify()
 			if (ACTIVE_USERS.has(user.username))
-				reply.send({ loggedIn: true, username: user.username })
+				reply.status(200).send({ loggedIn: true, username: user.username })
 			else
-				reply.send({ loggedIn: false })
+				reply.status(401).send({ loggedIn: false })
 		} catch (error) {
 			reply.send(error)
 		}

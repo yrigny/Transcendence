@@ -29,14 +29,33 @@ async function checkLogin() {
 			const data = await res.json();
 			if (res.status === 200)
 				window.location.href = '/home';
-			else if (res.status === 206)
+			else if (res.status === 206) {
+				sendTwoFACode(username);
 				checkTwoFA(username);
+			}
 			else
 				alert(data.error || 'Login failed');
 		}).catch(err => {
 			console.error('Error during login:', err);
 			alert('Login failed. Please try again.');
 		})
+	})
+}
+
+async function sendTwoFACode(username) {
+	fetch('/auth/2fa/send-code', {
+		method: 'POST',
+		body: JSON.stringify({ username }),
+		headers: { 'Content-Type': 'application/json' }
+	}).then(async res => {
+		const data = await res.json();
+		if (res.status === 200)
+			alert('2FA code sent to your email');
+		else
+			alert(data.error || 'Failed to send 2FA code');
+	}).catch(err => {
+		console.error('Error sending 2FA code:', err);
+		alert('Failed to send 2FA code. Please try again.');
 	})
 }
 
@@ -47,7 +66,7 @@ async function checkTwoFA(username) {
 	submitButton.addEventListener('click', async (event) => {
 		event.preventDefault();
 		const code = document.getElementById('code-input').value;
-		fetch('/auth/verify-login', {
+		fetch('/auth/2fa/verify', {
 			method: 'POST',
 			body: JSON.stringify({ username, code }),
 			headers: { 'Content-Type': 'application/json' }
