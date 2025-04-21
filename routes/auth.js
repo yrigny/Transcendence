@@ -29,7 +29,8 @@ async function authRoutes(fastify) {
 					if (part.filename.length === 0)
 						part.filename = 'default_avatar.png'
 					uploadPath = path.join(__dirname, '../volume/uploads', part.filename)
-					pump(part.file, fs.createWriteStream(uploadPath))
+					if (part.filename !== 'default_avatar.png')
+						pump(part.file, fs.createWriteStream(uploadPath))
 					avatarInfo = {
 						filename: part.filename,
 						mimetype: part.mimetype,
