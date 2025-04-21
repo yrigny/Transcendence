@@ -1,12 +1,21 @@
 import fs from 'node:fs'
 import pump from 'pump'
 import path from 'node:path'
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt'
+import nodemailer from 'nodemailer'
 import { fileURLToPath } from 'node:url'
+import { ACTIVE_USERS } from '../server.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-import { ACTIVE_USERS } from '../server.js'
+const transporter = nodemailer.createTransport({
+	service: 'gmail',
+	auth: {
+		user: 'realyifandiao@gmail.com',
+		pass: 'tzxk wktx sirz xiil'
+	}
+})
+const TWO_FA_CODES = new Map()
 
 async function authRoutes(fastify) {
 	fastify.post('/auth/register', async (req, res) => {
@@ -67,7 +76,82 @@ async function authRoutes(fastify) {
 		).run(username, email, hashedPassword, avatarInfo.filename)
 		return res.send({ message: 'User registered successfully!' })
 	})
-	
+
+	fastify.post('/auth/2fa/send-code', async (req, res) => {
+		const { username } = req.body
+		const user = fastify.sqlite.prepare('SELECT * FROM users WHERE name = ?').get(username)
+		const code = Math.floor(100000 + Math.random() * 900000).toString()
+		const expiresAt = Date.now() + 5 * 60 * 1000 // 5 minutes
+		TWO_FA_CODES.set(username, { code, expiresAt })
+		await transporter.sendMail({
+			from: 'realyifandiao@gmail.com',
+			to: user.email,
+			subject: 'Your 2FA Code - Pong Game',
+			text: `Your 2FA code is ${code}. It will expire in 5 minutes.`
+		})
+		return res.send({ message: '2FA code sent to your email!' })
+	})
+
+	fastify.post('/auth/2fa/verify-enable', async (req, res) => {
+		const { username, code } = req.body
+		const entry = TWO_FA_CODES.get(username)
+		if (!entry || Date.now() > entry.expiresAt) {
+			return res.status(400).send({ error: 'Expired 2FA code' })
+		}
+		if (entry.code !== code) {
+			return res.status(400).send({ error: 'Invalid 2FA code' })
+		}
+		TWO_FA_CODES.delete(username)
+		fastify.sqlite.prepare(
+			'UPDATE users SET two_fa_enabled = 1 WHERE name = ?'
+		).run(username)
+		return res.send({ message: '2FA enabled successfully!' })
+	})
+
+	fastify.post('/auth/2fa/verify-disable', async (req, res) => {
+		const { username, code } = req.body
+		const entry = TWO_FA_CODES.get(username)
+		if (!entry || Date.now() > entry.expiresAt) {
+			return res.status(400).send({ error: 'Expired 2FA code' })
+		}
+		if (entry.code !== code) {
+			return res.status(400).send({ error: 'Invalid 2FA code' })
+		}
+		TWO_FA_CODES.delete(username)
+		fastify.sqlite.prepare(
+			'UPDATE users SET two_fa_enabled = 0 WHERE name = ?'
+		).run(username)
+		return res.send({ message: '2FA disabled successfully!' })
+	})
+
+	fastify.post('/auth/verify-login', async (req, res) => {
+		const { username, code } = req.body
+		const entry = TWO_FA_CODES.get(username)
+		if (!entry || Date.now() > entry.expiresAt) {
+			return res.status(400).send({ error: 'Expired 2FA code' })
+		}
+		if (entry.code !== code) {
+			return res.status(400).send({ error: 'Invalid 2FA code' })
+		}
+		TWO_FA_CODES.delete(username)
+		console.log('User logged in successfully: ', username)
+		const token = fastify.jwt.sign({ username })
+		console.log('Token generated: ', token)
+		// save active user in map
+		ACTIVE_USERS.set(username, { loggedInAt: Date.now() })
+		res.setCookie('token', token, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 60 * 60, // 1 hour
+		})
+		// print all active users
+		console.log('Active users: ')
+		ACTIVE_USERS.forEach((value, key) => {
+			console.log(key, value)
+		})
+		return res.redirect('/home')
+	})
+
 	fastify.post('/auth/login', async (req, res) => {
 		console.log('Login request received:', req.body)
 		const { username, password } = req.body
@@ -89,6 +173,10 @@ async function authRoutes(fastify) {
 		if (ACTIVE_USERS.has(username)) {
 			return res.status(400).send({ error: 'User is already logged in somewhere else' })
 		}
+		// check if 2FA is enabled
+		if (user.two_fa_enabled) {
+			return res.status(206).send({ step: '2FA required' })
+		}
 		console.log('User logged in successfully: ', username)
 		const token = fastify.jwt.sign({ username })
 		console.log('Token generated: ', token)
@@ -104,7 +192,7 @@ async function authRoutes(fastify) {
 		ACTIVE_USERS.forEach((value, key) => {
 			console.log(key, value)
 		})
-		return res.redirect('/home')
+		return res.status(200).send({ message: 'User logged in successfully!' })
 	})
 
 	fastify.get('/auth/logout', async function (request, reply) {

@@ -19,6 +19,7 @@ async function dbConnector(fastify) {
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       avatar TEXT NOT NULL,
+      two_fa_enabled BOOLEAN DEFAULT FALSE,
       register_time DATETIME DEFAULT CURRENT_TIMESTAMP
     )`).run();
     console.log('Users table created successfully');
