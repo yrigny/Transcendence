@@ -45,9 +45,13 @@ async function fillProfile(username) {
 			const name = document.getElementById('username-display');
 			const email = document.getElementById('email-display');
 			const avatar = document.getElementById('avatar-display');
+			const twoFA = document.getElementById('twofa-display');
+			const twoFASwitch = document.getElementById('twofa-switch');
 			name.textContent = userData.name;
 			email.textContent = userData.email;
 			avatar.src = `/uploads/${userData.avatar}`;
+			twoFA.textContent = userData.two_fa_enabled ? 'Enabled' : 'Disabled';
+			twoFASwitch.checked = userData.two_fa_enabled;
 		}
 	} catch (error) {
 		console.error('Login check failed:', error)
@@ -192,6 +196,29 @@ async function buttonController() {
 				}
 			}
 		})
+	})
+
+	const twoFASwitch = document.getElementById('twofa-switch');
+	twoFASwitch.addEventListener('change', async () => {
+		let isEnabled = twoFASwitch.checked;
+		const endpoint = isEnabled ? '/auth/2fa/enable' : '/auth/2fa/disable';
+		try {
+			const res = await fetch(endpoint, {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username: await getUsername() })
+			});
+			const data = await res.json();
+			if (res.status === 200) {
+				alert(`2FA ${isEnabled ? 'enabled' : 'disabled'} successfully`);
+			} else {
+				alert(data.error || 'Failed to update 2FA status');
+			}
+		} catch (error) {
+			console.error('Error toggling 2FA:', error);
+			alert('Something went wrong');
+		}
 	})
 }
 
