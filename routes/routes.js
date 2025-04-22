@@ -45,6 +45,10 @@ async function routes(fastify, opts) {
   fastify.get('/friends', async function (request, reply) {
     return checkAuthAndRespond(request, reply, 'index.html');
   });
+
+  fastify.get('/tournament', async function (request, reply) {
+    return reply.sendFile('index.html');
+  });
 }
 
 export default routes;

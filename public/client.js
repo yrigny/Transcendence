@@ -4,6 +4,7 @@ import displayLogin from "./displayLogin.js";
 import displayRegister from "./displayRegister.js";
 import displayDashboard from "./displayDashboard.js";
 import displayFriends from "./displayFriends.js";
+import displayTournament from "./displayTournament.js";
 
 const render = () => {
 	switch (window.location.pathname) {
@@ -27,6 +28,9 @@ const render = () => {
 			break;
 		case "/friends":
 			displayFriends();
+			break;
+		case "/tournament":
+			displayTournament();
 			break;
 		default:
 			displayHome();
