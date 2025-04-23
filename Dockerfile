@@ -11,6 +11,9 @@ RUN npm install
 # Copy app code and public assets
 COPY . .
 
+# Run script creating the http certificate and key
+RUN chmod +x generate.sh && ./generate.sh
+
 # Expose port (adjust if your app uses a different one)
 EXPOSE 6789
 

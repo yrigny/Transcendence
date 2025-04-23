@@ -109,7 +109,7 @@ async function startGame(isLocalGame) {
     const userId = await getUserId() || 'Local User';
     console.log('User ID:', userId);
 
-    const socket = new WebSocket(`ws://${location.host}/ws`);
+    const socket = new WebSocket(`wss://${location.host}/ws`);
     socket.onopen = function () {
         console.log('WebSocket connection opened');
         socket.send(JSON.stringify({ type: isLocalGame ? "join-single" : "join-double", userId }));

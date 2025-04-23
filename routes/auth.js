@@ -126,6 +126,7 @@ async function authRoutes(fastify) {
 		ACTIVE_USERS.set(username, { loggedInAt: Date.now() })
 		res.setCookie('token', token, {
 			httpOnly: true,
+			Secure: true,
 			path: '/',
 			maxAge: 60 * 60, // 1 hour
 		})
@@ -169,6 +170,7 @@ async function authRoutes(fastify) {
 		ACTIVE_USERS.set(username, { loggedInAt: Date.now() })
 		res.setCookie('token', token, {
 			httpOnly: true,
+			Secure: true,
 			path: '/',
 			maxAge: 60 * 60, // 1 hour
 		})
