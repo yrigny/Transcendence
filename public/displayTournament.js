@@ -24,7 +24,6 @@ const tournamentState = {
 		match2: { players: [], readyStatus: [false, false], gaming: false, winner: null }
 	},
 	final: { players: [], readyStatus: [false, false], gaming: false, winner: null },
-	// currentUser: { id: 1, username: "Player1", avatar: "https://via.placeholder.com/100", winPercentage: 65 } // Mock current user
 };
 
 async function initTournament() {
@@ -54,9 +53,9 @@ async function initTournament() {
 			// Update tournament map
 		}
 		if (message.type === 'tournament-game-start') {
-			// Hide tournament-inject div, show game-inject div and addEventListener to keydown
+			// Hide tournament-inject div, show game-inject div
 			putUserInfo(message); // An array of 4 players name
-			startGame(user.username, socket);
+			startGame(user.username, socket); // and addEventListener to keydown
 		}
 		if (message.type === 'tournament-game-output') {
 			draw(ctx, canvas, message);
