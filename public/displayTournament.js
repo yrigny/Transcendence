@@ -17,6 +17,7 @@ function displayTournament() {
 		});
 }
 
+/*
 const tournamentState = {
 	playersPool: [],
 	semifinals: {
@@ -25,6 +26,7 @@ const tournamentState = {
 	},
 	final: { players: [], readyStatus: [false, false], gaming: false, winner: null },
 };
+*/
 
 async function initTournament() {
 	console.log('Initializing tournament...');
@@ -50,11 +52,10 @@ async function initTournament() {
 			fillTournamentMap(message.semifinals, message.final);
 		}
 		else if (message.type === 'tournament-update-pool') {
-			console.log('Received tournament-update-pool message', message);
 			fillPlayersPool(message.playersPool);
 		}
 		else if (message.type === 'tournament-update-map') {
-			// Update tournament map
+			fillTournamentMap(message.semifinals, message.final);
 		}
 		if (message.type === 'tournament-game-start') {
 			// Hide tournament-inject div, show game-inject div
@@ -75,7 +76,6 @@ async function initTournament() {
 }
 
 async function fillPlayersPool(playersPool) { // playersPool is an array of username in string
-	console.log('Filling players pool:', playersPool);
 	const playerSlots = document.querySelectorAll('.player-slot');
 	const playerCount = playersPool.length;
 	for (let i = 0; i < playerCount; i++) {
@@ -95,21 +95,21 @@ async function fillTournamentMap(semifinals, final) {
 	const matchTwoData = semifinals.match2;
 
 	if (matchOneData.players.length > 0) { // matchmaking plans 2 semifinals oneshot, so just check if match 1 is planned and can fill the 2 semifinals' info together
-		semifinalMatchOne.querySelector('.player1-name').textContent = matchOneData.players[0].userId;
-		semifinalMatchOne.querySelector('.player2-name').textContent = matchOneData.players[1].userId;
-		semifinalMatchOne.querySelector('.player1-avatar').src = await fetch(`/users/${matchOneData.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-		semifinalMatchOne.querySelector('.player2-avatar').src = await fetch(`/users/${matchOneData.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-		semifinalMatchTwo.querySelector('.player1-name').textContent = matchTwoData.players[0].userId;
-		semifinalMatchTwo.querySelector('.player2-name').textContent = matchTwoData.players[1].userId;
-		semifinalMatchTwo.querySelector('.player1-avatar').src = await fetch(`/users/${matchTwoData.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-		semifinalMatchTwo.querySelector('.player2-avatar').src = await fetch(`/users/${matchTwoData.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+		semifinalMatchOne.querySelector('.player1-name').textContent = matchOneData.players[0];
+		semifinalMatchOne.querySelector('.player2-name').textContent = matchOneData.players[1];
+		semifinalMatchOne.querySelector('.player1-avatar').src = await fetch(`/users/${matchOneData.players[0]}/avatar`).then(res => res.json()).then(data => data.avatar);
+		semifinalMatchOne.querySelector('.player2-avatar').src = await fetch(`/users/${matchOneData.players[1]}/avatar`).then(res => res.json()).then(data => data.avatar);
+		semifinalMatchTwo.querySelector('.player1-name').textContent = matchTwoData.players[0];
+		semifinalMatchTwo.querySelector('.player2-name').textContent = matchTwoData.players[1];
+		semifinalMatchTwo.querySelector('.player1-avatar').src = await fetch(`/users/${matchTwoData.players[0]}/avatar`).then(res => res.json()).then(data => data.avatar);
+		semifinalMatchTwo.querySelector('.player2-avatar').src = await fetch(`/users/${matchTwoData.players[1]}/avatar`).then(res => res.json()).then(data => data.avatar);
 	}
 
 	if (final.players.length > 0) {
-		finalMatch.querySelector('.player1-name').textContent = final.players[0].userId;
-		finalMatch.querySelector('.player2-name').textContent = final.players[1].userId;
-		finalMatch.querySelector('.player1-avatar').src = await fetch(`/users/${final.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-		finalMatch.querySelector('.player2-avatar').src = await fetch(`/users/${final.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+		finalMatch.querySelector('.player1-name').textContent = final.players[0];
+		finalMatch.querySelector('.player2-name').textContent = final.players[1];
+		finalMatch.querySelector('.player1-avatar').src = await fetch(`/users/${final.players[0]}/avatar`).then(res => res.json()).then(data => data.avatar);
+		finalMatch.querySelector('.player2-avatar').src = await fetch(`/users/${final.players[1]}/avatar`).then(res => res.json()).then(data => data.avatar);
 	}
 
 	if (final.winner != null) {
@@ -121,7 +121,6 @@ async function fillTournamentMap(semifinals, final) {
 function buttonController(user, socket) {
 	const enterButton = document.getElementById('enter-tournament-btn');
 	enterButton.addEventListener('click', () => {
-		console.log('Enter Tournament button clicked');
 		// Send a join tournament request to the server through WebSocket
 		socket.send(JSON.stringify({ type: 'tournament-join-pool', userId: user.username }));
 	});
