@@ -45,11 +45,15 @@ async function initTournament() {
 		const message = JSON.parse(event.data);
 		console.log('Received message:', message);
 
-		if (message.type === 'tournament-update-pool') {
+		if (message.type === 'tournament-fill-page') {
+			fillPlayersPool(message.playersPool);
+			fillTournamentMap(message.semifinals, message.final);
+		}
+		else if (message.type === 'tournament-update-pool') {
 			console.log('Received tournament-update-pool message', message);
 			fillPlayersPool(message.playersPool);
 		}
-		if (message.type === 'tournament-update-map') {
+		else if (message.type === 'tournament-update-map') {
 			// Update tournament map
 		}
 		if (message.type === 'tournament-game-start') {
@@ -63,54 +67,54 @@ async function initTournament() {
 		if (message.type === 'tournament-game-end') {
 			// Hide game-inject div and show tournament-inject div
 		}
+		if (message.type === 'error') {
+			alert(message.message);
+		}
 	}
 	buttonController(user, socket);
 }
 
-async function fillPlayersPool(playersPool) { // data is from server
+async function fillPlayersPool(playersPool) { // playersPool is an array of username in string
 	console.log('Filling players pool:', playersPool);
 	const playerSlots = document.querySelectorAll('.player-slot');
-	playerSlots[0].querySelector('p').textContent = playersPool[0];
-	playerSlots[1].querySelector('p').textContent = playersPool[1];
-	playerSlots[2].querySelector('p').textContent = playersPool[2];
-	playerSlots[3].querySelector('p').textContent = playersPool[3];
-	// playerSlots.forEach(slot => async () => {
-	// 	const avatar = slot.querySelector('img');
-	// 	const playerName = slot.querySelector('p');
-	// 	const slotIndex = slot.dataset.slot;
-	// 	const dataset = playersPool[slotIndex];
-	// 	playerName.textContent = dataset.userId;
-	// 	avatar.src = await fetch(`/users/${dataset.userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-	// })
+	const playerCount = playersPool.length;
+	for (let i = 0; i < playerCount; i++) {
+		const playerAvatar = playerSlots[i].querySelector('img');
+		const playerName = playerSlots[i].querySelector('p');
+		playerName.textContent = playersPool[i];
+		playerAvatar.src = await fetch(`/users/${playersPool[i]}/avatar`).then(res => res.json()).then(data => data.avatar);
+	}
 }
 
-async function fillTournamentMap(tournamentState) {
+async function fillTournamentMap(semifinals, final) {
 	const semifinalMatchOne = document.querySelector(`[data-match="0"]`);
 	const semifinalMatchTwo = document.querySelector(`[data-match="1"]`);
 	const finalMatch = document.querySelector('.final-match');
 	const champion = document.querySelector('.winner-container');
-	const matchOneData = tournamentState.semifinals.match1;
-	const matchTwoData = tournamentState.semifinals.match2;
-	const finalMatchData = tournamentState.final;
+	const matchOneData = semifinals.match1;
+	const matchTwoData = semifinals.match2;
 
-	semifinalMatchOne.querySelector('.player1-name').textContent = matchOneData.players[0].userId;
-	semifinalMatchOne.querySelector('.player2-name').textContent = matchOneData.players[1].userId;
-	semifinalMatchOne.querySelector('.player1-avatar').src = await fetch(`/users/${matchOneData.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-	semifinalMatchOne.querySelector('.player2-avatar').src = await fetch(`/users/${matchOneData.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+	if (matchOneData.players.length > 0) { // matchmaking plans 2 semifinals oneshot, so just check if match 1 is planned and can fill the 2 semifinals' info together
+		semifinalMatchOne.querySelector('.player1-name').textContent = matchOneData.players[0].userId;
+		semifinalMatchOne.querySelector('.player2-name').textContent = matchOneData.players[1].userId;
+		semifinalMatchOne.querySelector('.player1-avatar').src = await fetch(`/users/${matchOneData.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+		semifinalMatchOne.querySelector('.player2-avatar').src = await fetch(`/users/${matchOneData.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+		semifinalMatchTwo.querySelector('.player1-name').textContent = matchTwoData.players[0].userId;
+		semifinalMatchTwo.querySelector('.player2-name').textContent = matchTwoData.players[1].userId;
+		semifinalMatchTwo.querySelector('.player1-avatar').src = await fetch(`/users/${matchTwoData.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+		semifinalMatchTwo.querySelector('.player2-avatar').src = await fetch(`/users/${matchTwoData.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+	}
 
-	semifinalMatchTwo.querySelector('.player1-name').textContent = matchTwoData.players[0].userId;
-	semifinalMatchTwo.querySelector('.player2-name').textContent = matchTwoData.players[1].userId;
-	semifinalMatchTwo.querySelector('.player1-avatar').src = await fetch(`/users/${matchTwoData.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-	semifinalMatchTwo.querySelector('.player2-avatar').src = await fetch(`/users/${matchTwoData.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+	if (final.players.length > 0) {
+		finalMatch.querySelector('.player1-name').textContent = final.players[0].userId;
+		finalMatch.querySelector('.player2-name').textContent = final.players[1].userId;
+		finalMatch.querySelector('.player1-avatar').src = await fetch(`/users/${final.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+		finalMatch.querySelector('.player2-avatar').src = await fetch(`/users/${final.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
+	}
 
-	finalMatch.querySelector('.player1-name').textContent = finalMatchData.players[0].userId;
-	finalMatch.querySelector('.player2-name').textContent = finalMatchData.players[1].userId;
-	finalMatch.querySelector('.player1-avatar').src = await fetch(`/users/${finalMatchData.players[0].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-	finalMatch.querySelector('.player2-avatar').src = await fetch(`/users/${finalMatchData.players[1].userId}/avatar`).then(res => res.json()).then(data => data.avatar);
-
-	if (finalMatchData.winner) {
-		champion.querySelector('.player-name').textContent = finalMatchData.winner;
-		champion.querySelector('.player-avatar').src = await fetch(`/users/${finalMatchData.winner}/avatar`).then(res => res.json()).then(data => data.avatar);
+	if (final.winner != null) {
+		champion.querySelector('.player-name').textContent = final.winner;
+		champion.querySelector('.player-avatar').src = await fetch(`/users/${final.winner}/avatar`).then(res => res.json()).then(data => data.avatar);
 	}
 }
 
@@ -129,38 +133,6 @@ function buttonController(user, socket) {
 			// Send a join match No.X request to the server through WebSocket
 		});
 	});
-}
-
-function handleEnterTournament(event) {
-	console.log('Enter Tournament button clicked');
-
-	const availableSlots = document.querySelectorAll('[data-status="available"');
-	console.log('Available slots:', availableSlots);
-
-	if (availableSlots.length == 4) {
-		// take the 1st slot where data-slot="0"
-		playerTakeSlot(0);
-	} else if (availableSlots.length == 3) {
-		// take the 2nd slot where data-slot="1"
-	} else if (availableSlots.length == 2) {
-		// take the 3rd slot where data-slot="2"
-	} else if (availableSlots.length == 1) {
-		// take the 4th slot where data-slot="3"
-	} else {
-		// No available slots
-		alert('No available slots in the next tournament.');
-		return;
-	}
-}
-
-async function playerTakeSlot(slotIndex) {
-	const slot = document.querySelector(`[data-slot="${slotIndex}"]`);
-	const user = await fetch('/auth/status', { method: 'GET', credentials: 'include' }).then(res => res.json());
-	const avatar = slot.querySelector('img');
-	avatar.src = await fetch(`/users/${user.username}/avatar`).then(res => res.json()).then(data => data.avatar);
-	const playerName = slot.querySelector('p');
-	playerName.textContent = user.username;
-	slot.dataset.status = 'taken';
 }
 
 async function startGame(userId, socket) {
