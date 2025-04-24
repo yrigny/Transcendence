@@ -9,7 +9,11 @@ function displayFriends() {
 		})
 		.then(html => {
 			const targetDiv = document.getElementById('friends-inject');
-			targetDiv.innerHTML = html;
+			if (targetDiv) {
+				targetDiv.innerHTML = html;
+			} else {
+				console.error("Element with id 'friends-inject' not found.");
+			}
 			addFriendHandler();
 			fillFriendsTable();
 		})
@@ -18,10 +22,19 @@ function displayFriends() {
 
 async function addFriendHandler() {
 	const addFriendButton = document.getElementById('add-friend-button');
+	if (!addFriendButton) {
+		console.error("Element with id 'add-friend-button' not found.");
+		return;
+	}
 	addFriendButton.addEventListener('click', async (event) => {
 		event.preventDefault();
 		const userName = await getUsername();
-		const friendName = document.getElementById('add-friend-input').value.trim();
+		const addFriendInput = document.getElementById('add-friend-input');
+		if (!addFriendInput) {
+			console.error("Element with id 'add-friend-input' not found.");
+			return;
+		}
+		const friendName = (addFriendInput as HTMLInputElement).value.trim();
 		if (userName === friendName) {
 			alert('You cannot add yourself as a friend');
 			return;
@@ -39,7 +52,10 @@ async function addFriendHandler() {
 					alert(data.error || 'Failed to add friend');
 				} else {
 					alert('Friend added successfully');
-					document.getElementById('add-friend-input').value = '';
+					const addFriendInputElement = document.getElementById('add-friend-input') as HTMLInputElement;
+					if (addFriendInputElement) {
+						addFriendInputElement.value = '';
+					}
 					fillFriendsTable();
 				}
 			}).catch(err => {
@@ -62,7 +78,12 @@ async function fillFriendsTable() {
 			const friends = await res.json();
 			console.log('Fetched friends:', friends);
 			const tableBody = document.getElementById('friend-list');
-			tableBody.innerHTML = '';
+			if (tableBody) {
+				tableBody.innerHTML = '';
+			} else {
+				console.error("Element with id 'friend-list' not found.");
+				return;
+			}
 			for (const friend of friends) {
 				console.log('Listing friend:', friend.friend_name);
 				const username = friend.friend_name;

@@ -3,7 +3,7 @@ import displayGame from "./displayGame.js";
 import displayLogin from "./displayLogin.js";
 import displayRegister from "./displayRegister.js";
 import displayDashboard from "./displayDashboard.js";
-import displayFriends from "./displayFriends.js";
+import displayFriends from "./displayFriends.ts";
 import displayTournament from "./displayTournament.js";
 
 const render = () => {
