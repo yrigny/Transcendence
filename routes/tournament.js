@@ -6,7 +6,7 @@ import { GameRoom } from './GameRoom.js'
 // Ongoing: The server will keep sending updated state (playersPool or tournamentMap) to all connected users upon any changes
 // Done: When a user joins the players pool, they will be added to the players pool
 // Done: When a players pool is full (4 players), the server will matchmake the players according to their win percentage to plan 2 semi-finals
-// When a player is ready for a planned game, the server will update the readyStatus of the target game
+// Done: When a player is ready for a planned game, the server will update the readyStatus of the target game
 // When both players of a game are ready, the server will start a GameRoom and send the game state to both players (for the audience, should we let them watch the live game? if so, the two semi-finals should take place one after another, because the audience can only watch one game at a time)
 // When a semi-final is finished, the server will update the tournament state and send the updated tournament map to all connected users (the winner will show up in the final game placeholder)
 // When the final game is finished, the server will update the tournament state and send the updated state to all connected users (the champion will show up in the champion placeholder)
@@ -136,10 +136,20 @@ async function tournamentManager(fastify) {
 			}
 			if (data.type === 'tournament-ready-for-game') {
 				console.log('User ready for game:', userId)
-				// Update ready status of target game in tournamentState
-
-				// Send updated tournamentState to all connected clients, msg type 'tournament-update-map'
-
+				let targetMatch = null
+				if (data.match === 0) targetMatch = tournamentState.semifinals.match1
+				else if (data.match === 1) targetMatch = tournamentState.semifinals.match2
+				else if (data.match === 2) targetMatch = tournamentState.final
+				// Update the ready status for the user
+				if (targetMatch.players[0] === userId) targetMatch.readyStatus[0] = true
+				else if (targetMatch.players[1] === userId) targetMatch.readyStatus[1] = true
+				// Send updated tournamentState to all connected clients
+				let msg = {
+					type: 'tournament-update-ready-status',
+					matchIndex: data.match,
+					playerIndex: targetMatch.players[0] === userId ? 0 : 1,
+				}
+				broadcastToAllConnections(msg)
 				// Check if both players are ready, if so, start a GameRoom and send msg type 'tournament-game-start'
 			}
 		})

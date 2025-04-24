@@ -49,13 +49,19 @@ async function initTournament() {
 
 		if (message.type === 'tournament-fill-page') {
 			fillPlayersPool(message.playersPool);
-			fillTournamentMap(message.semifinals, message.final);
+			fillTournamentMap(message.semifinals, message.final, user.username, socket);
 		}
 		else if (message.type === 'tournament-update-pool') {
 			fillPlayersPool(message.playersPool);
 		}
 		else if (message.type === 'tournament-update-map') {
-			fillTournamentMap(message.semifinals, message.final);
+			fillTournamentMap(message.semifinals, message.final, user.username, socket);
+		}
+		else if (message.type === 'tournament-update-ready-status') {
+			const matchDiv = document.querySelector(`[data-match="${message.matchIndex}"]`);
+			const button = matchDiv.querySelectorAll('.ready-btn')[message.playerIndex];
+			button.classList.remove('bg-gray-400');
+			button.classList.add('bg-green-600');
 		}
 		if (message.type === 'tournament-game-start') {
 			// Hide tournament-inject div, show game-inject div
@@ -72,10 +78,10 @@ async function initTournament() {
 			alert(message.message);
 		}
 	}
-	buttonController(user, socket);
+	enterButtonController(user, socket);
 }
 
-async function fillPlayersPool(playersPool) { // playersPool is an array of username in string
+async function fillPlayersPool(playersPool) { // array of userId in string
 	const playerSlots = document.querySelectorAll('.player-slot');
 	const playerCount = playersPool.length;
 	for (let i = 0; i < playerCount; i++) {
@@ -86,7 +92,10 @@ async function fillPlayersPool(playersPool) { // playersPool is an array of user
 	}
 }
 
-async function fillTournamentMap(semifinals, final) {
+// situation 1: 2 semifinals are planned
+// situation 2: Player ready status is set to true
+// situation 3: Final match is planned
+async function fillTournamentMap(semifinals, final, userId, socket) { // object, object, string, socket
 	const semifinalMatchOne = document.querySelector(`[data-match="0"]`);
 	const semifinalMatchTwo = document.querySelector(`[data-match="1"]`);
 	const finalMatch = document.querySelector('.final-match');
@@ -103,6 +112,10 @@ async function fillTournamentMap(semifinals, final) {
 		semifinalMatchTwo.querySelector('.player2-name').textContent = matchTwoData.players[1];
 		semifinalMatchTwo.querySelector('.player1-avatar').src = await fetch(`/users/${matchTwoData.players[0]}/avatar`).then(res => res.json()).then(data => data.avatar);
 		semifinalMatchTwo.querySelector('.player2-avatar').src = await fetch(`/users/${matchTwoData.players[1]}/avatar`).then(res => res.json()).then(data => data.avatar);
+		if (matchOneData.readyStatus[0] === false && matchOneData.readyStatus[1] === false)
+			readyButtonController(userId, socket, 0);
+		if (matchTwoData.readyStatus[0] === false && matchTwoData.readyStatus[1] === false)
+			readyButtonController(userId, socket, 1);
 	}
 
 	if (final.players.length > 0) {
@@ -110,6 +123,8 @@ async function fillTournamentMap(semifinals, final) {
 		finalMatch.querySelector('.player2-name').textContent = final.players[1];
 		finalMatch.querySelector('.player1-avatar').src = await fetch(`/users/${final.players[0]}/avatar`).then(res => res.json()).then(data => data.avatar);
 		finalMatch.querySelector('.player2-avatar').src = await fetch(`/users/${final.players[1]}/avatar`).then(res => res.json()).then(data => data.avatar);
+		if (final.readyStatus[0] === false && final.readyStatus[1] === false)
+			readyButtonController(userId, socket, 2);
 	}
 
 	if (final.winner != null) {
@@ -118,19 +133,33 @@ async function fillTournamentMap(semifinals, final) {
 	}
 }
 
-function buttonController(user, socket) {
+function enterButtonController(user, socket) { // object from /auth/status response, socket
 	const enterButton = document.getElementById('enter-tournament-btn');
 	enterButton.addEventListener('click', () => {
-		// Send a join tournament request to the server through WebSocket
 		socket.send(JSON.stringify({ type: 'tournament-join-pool', userId: user.username }));
 	});
+}
 
-	const readyButtons = document.querySelectorAll('.ready-btn');
+function readyButtonController(userId, socket, matchNumber) { // string, socket, number
+	console.log('Setting up ready button controller for match:', matchNumber);
+	const matchDiv = document.querySelector(`[data-match="${matchNumber}"]`); // 0, 1, 2
+	const readyButtons = matchDiv.querySelectorAll('.ready-btn'); // 2 buttons of the match
 	readyButtons.forEach(button => {
-		button.addEventListener('click', () => {
-			console.log('Ready button clicked');
-			// Send a join match No.X request to the server through WebSocket
-		});
+		// Remove the hidden class
+		button.classList.remove('hidden');
+		const playerName = button.parentElement.querySelector('span').textContent;
+		if (playerName === userId) {
+			console.log('User is the current player:', userId);
+			// Add hover effect and event listener
+			button.classList.add('hover:bg-green-600');
+			button.addEventListener('click', () => {
+				socket.send(JSON.stringify({ type: 'tournament-ready-for-game', match: matchNumber, userId: userId}));
+				// When clicked, remove the hover effect and event listener
+				button.classList.remove('hover:bg-green-600');
+				button.classList.remove('bg-gray-400');
+				button.classList.add('bg-green-600');
+			})
+		}
 	});
 }
 
