@@ -42,10 +42,10 @@ async function initTournament() {
 	}
 
 	socket.onmessage = (event) => {
-		// const canvas = document.getElementById("game-canvas");
-    	// const ctx = canvas.getContext("2d");
+		const canvas = document.getElementById("game-canvas");
+    	const ctx = canvas.getContext("2d");
 		const message = JSON.parse(event.data);
-		console.log('Received message:', message);
+		// console.log('Received message:', message);
 
 		if (message.type === 'tournament-fill-page') {
 			fillPlayersPool(message.playersPool);
@@ -64,15 +64,19 @@ async function initTournament() {
 			button.classList.add('bg-green-600');
 		}
 		if (message.type === 'tournament-game-start') {
-			// Hide tournament-inject div, show game-inject div
-			putUserInfo(message); // An array of 4 players name
+			// Hide tournament and show game
+			document.getElementById('tournament-zone').classList.add('hidden');
+			document.getElementById('game-zone').classList.remove('hidden');
+			putUserInfo(message); // An array of 4 players name, need to call twice separately
 			startGame(user.username, socket); // and addEventListener to keydown
 		}
 		if (message.type === 'tournament-game-output') {
 			draw(ctx, canvas, message);
 		}
-		if (message.type === 'tournament-game-end') {
-			// Hide game-inject div and show tournament-inject div
+		if (message.type === 'tournament-game-end') { // seems not entering, to debug
+			// Hide game and show tournament
+			document.getElementById('game-zone').classList.add('hidden');
+			document.getElementById('tournament-zone').classList.remove('hidden');
 		}
 		if (message.type === 'error') {
 			alert(message.message);

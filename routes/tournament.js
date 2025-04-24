@@ -1,5 +1,3 @@
-import { GameRoom } from './GameRoom.js'
-
 // Done: When a user connects to the tournament page (ws/tournament), they will be added to the connection pool
 // Note: connection pool != players pool, there can be audience users who don't participate in the tournament but can see what's going on
 // Done: The server will first send the tournament state to the newly connected user
@@ -7,16 +5,17 @@ import { GameRoom } from './GameRoom.js'
 // Done: When a user joins the players pool, they will be added to the players pool
 // Done: When a players pool is full (4 players), the server will matchmake the players according to their win percentage to plan 2 semi-finals
 // Done: When a player is ready for a planned game, the server will update the readyStatus of the target game
-// When both players of a game are ready, the server will start a GameRoom and send the game state to both players (for the audience, should we let them watch the live game? if so, the two semi-finals should take place one after another, because the audience can only watch one game at a time)
+// When both semifinals (4 players) are ready to play, the server will start a game, wait for it to finish, then start another game, wait for it to finish, and then start the final game
 // When a semi-final is finished, the server will update the tournament state and send the updated tournament map to all connected users (the winner will show up in the final game placeholder)
 // When the final game is finished, the server will update the tournament state and send the updated state to all connected users (the champion will show up in the champion placeholder)
 // When a user disconnects, they will be removed from the players pool
 
+import { GameRoom } from './GameRoom.js'
+
 async function tournamentManager(fastify) {
 	const connectionsPool = [] // { userId, socket }
 	const playersPool = [] // { userId, socket }
-	const gameRooms = new Map() // gameId -> GameRoom
-	const userToGame = new Map() // userId -> gameId
+	let currentGame = null
 	const tournamentState = {
 		playersName: [],
 		semifinals: {
@@ -87,6 +86,87 @@ async function tournamentManager(fastify) {
 		return totalCount === 0 ? -1 : (winCount / totalCount) * 100
 	}
 
+	const checkReadyAndStartGames = async () => {
+		if (tournamentState.semifinals.match1.readyStatus[0] &&
+			tournamentState.semifinals.match1.readyStatus[1] &&
+			tournamentState.semifinals.match2.readyStatus[0] &&
+			tournamentState.semifinals.match2.readyStatus[1] &&
+			!tournamentState.semifinals.match1.gaming &&
+			!tournamentState.semifinals.match2.gaming) {
+			console.log('Both semifinals are ready, starting games...')
+			const player1 = playersPool.find(p => p.userId === tournamentState.semifinals.match1.players[0])
+			const player2 = playersPool.find(p => p.userId === tournamentState.semifinals.match1.players[1])
+			const player3 = playersPool.find(p => p.userId === tournamentState.semifinals.match2.players[0])
+			const player4 = playersPool.find(p => p.userId === tournamentState.semifinals.match2.players[1])
+			setTimeout(async () => { await startSemifinal(0, [player1, player2]) }, 2000)
+			setTimeout(async () => { await startSemifinal(1, [player3, player4]) }, 4000)
+		}
+
+		if (tournamentState.final.readyStatus[0] && 
+			tournamentState.final.readyStatus[1] &&
+			tournamentState.semifinals.match1.winner &&
+			tournamentState.semifinals.match2.winner &&
+			!tournamentState.final.gaming) {
+			console.log("All finalists ready")
+			const finalist1 = playersPool.find(p => p.userId === tournamentState.final.players[0]);
+			const finalist2 = playersPool.find(p => p.userId === tournamentState.final.players[1]);
+			setTimeout(() => { startFinal([finalist1, finalist2]) }, 2000)
+		}
+	}
+
+	const startSemifinal = async (matchIndex, players) => {
+		if (matchIndex === 0) tournamentState.semifinals.match1.gaming = true
+		else tournamentState.semifinals.match2.gaming = true
+		console.log(`Starting semifinal ${matchIndex + 1} with players:`, players[0].userId, players[1].userId)
+		broadcastToAllConnections({ type: 'tournament-game-start' })
+		currentGame = new GameRoom(players, true)
+		currentGame.getGameResult = async function() {
+			const winner = this.state.scores.left > this.state.scores.right ? 
+			players[0].userId : players[1].userId;
+			// Update tournament state with the winner and scores
+			if (matchIndex === 0) {
+				tournamentState.semifinals.match1.winner = winner;
+				tournamentState.semifinals.match1.gaming = false;
+			} else {
+				tournamentState.semifinals.match2.winner = winner;
+				tournamentState.semifinals.match2.gaming = false;
+			}
+			console.log(`Semifinal ${matchIndex + 1} ended. Winner: ${winner}`)
+			broadcastToAllConnections({ type: 'tournament-game-end'})
+		}
+		currentGame.getGameResult
+		broadcastToAllConnections({ type: 'tournament-update-map', semifinals: tournamentState.semifinals, final: tournamentState.final })
+	}
+
+	const startFinal = async (players) => {
+		tournamentState.final.gaming = true
+		console.log('Starting final with players:', players[0].userId, players[1].userId)
+		broadcastToAllConnections({ type: 'tournament-game-start' })
+		currentGame = new GameRoom(players, true)
+		currentGame.getGameResult = async function() {
+			const winner = this.state.scores.left > this.state.scores.right ? 
+			players[0].userId : players[1].userId;
+			tournamentState.final.winner = winner;
+			tournamentState.final.gaming = false;
+			console.log('Final ended. Winner:', winner)
+			broadcastToAllConnections({ type: 'tournament-game-end'})
+		}
+		currentGame.getGameResult
+		broadcastToAllConnections({ type: 'tournament-update-map', semifinals: tournamentState.semifinals, final: tournamentState.final })
+		// Reset tournament after some delay
+		setTimeout(() => resetTournament(), 10000);
+	}
+
+	const resetTournament = () => {
+		tournamentState.playersName = []
+    	tournamentState.semifinals = {
+			match1: { players: [], readyStatus: [false, false], gaming: false, winner: null },
+			match2: { players: [], readyStatus: [false, false], gaming: false, winner: null }
+		}
+		tournamentState.final = { players: [], readyStatus: [false, false], gaming: false, winner: null }
+		while(playersPool.length) playersPool.pop();
+	}
+
 	fastify.get('/ws/tournament', { websocket: true }, (conn, req) => {
 		let userId = ''
 
@@ -150,7 +230,8 @@ async function tournamentManager(fastify) {
 					playerIndex: targetMatch.players[0] === userId ? 0 : 1,
 				}
 				broadcastToAllConnections(msg)
-				// Check if both players are ready, if so, start a GameRoom and send msg type 'tournament-game-start'
+				// If both semifinals are ready, start the game one after another
+				checkReadyAndStartGames();
 			}
 		})
 
