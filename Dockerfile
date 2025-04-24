@@ -11,6 +11,8 @@ RUN npm install
 # Copy app code and public assets
 COPY . .
 
+RUN npx tsc
+
 # Expose port (adjust if your app uses a different one)
 EXPOSE 6789
 

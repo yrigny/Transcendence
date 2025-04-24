@@ -1,10 +1,10 @@
-import displayHome from "./displayHome";
-// import displayGame from "./displayGame";
-import displayLogin from "./displayLogin";
-import displayRegister from "./displayRegister";
-// import displayDashboard from "./displayDashboard";
-// import displayFriends from "./displayFriends";
-// import displayTournament from "./displayTournament";
+import displayHome from "./displayHome.js";
+import displayGame from "./displayGame.js";
+import displayLogin from "./displayLogin.js";
+import displayRegister from "./displayRegister.js";
+import displayDashboard from "./displayDashboard.js";
+import displayFriends from "./displayFriends.js";
+import displayTournament from "./displayTournament.js";
 
 const render = (): void => {
 	switch (window.location.pathname) {
@@ -14,24 +14,24 @@ const render = (): void => {
 		case "/home":
 			displayHome();
 			break;
-		// case "/game":
-		// 	displayGame();
-		// 	break;
+		case "/game":
+			displayGame();
+			break;
 		case "/login":
 			displayLogin();
 			break;
 		case "/register":
 			displayRegister();
 			break;
-		// case "/dashboard":
-		// 	displayDashboard();
-		// 	break;
-		// case "/friends":
-		// 	displayFriends();
-		// 	break;
-		// case "/tournament":
-		// 	displayTournament();
-		// 	break;
+		case "/dashboard":
+			displayDashboard();
+			break;
+		case "/friends":
+			displayFriends();
+			break;
+		case "/tournament":
+			displayTournament();
+			break;
 		default:
 			displayHome();
 			break;
