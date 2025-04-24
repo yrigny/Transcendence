@@ -131,7 +131,7 @@ async function getUsername() {
 	return null
 }
 
-async function getUserAvatarPath(username) {
+async function getUserAvatarPath(username : string) {
     try {
         const res = await fetch(`/users/${username}/avatar`);
         if (res.ok) {
@@ -147,7 +147,7 @@ async function getUserAvatarPath(username) {
     }
 }
 
-async function getUserStatus(username) {
+async function getUserStatus(username : string) {
 	const statusResponse = await fetch(`/users/${username}/status`);
 	const status = await statusResponse.json();
 	let statusText = '';
