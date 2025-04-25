@@ -4,7 +4,9 @@ async function gameRoutes(fastify) {
   const waitingPool = [] // { userId, socket }
   const gameRooms = new Map() // gameId -> GameRoom
   const userToGame = new Map() // userId -> gameId
-
+  
+  const localGames = []
+  
   fastify.get('/ws/game', { websocket: true }, (conn, req) => {
     let userId = ''
 
@@ -39,6 +41,14 @@ async function gameRoutes(fastify) {
       if (data.type === 'join-single') {
         userId = data.userId
         console.log('User joined:', userId)
+        
+        if (!localGames.includes(userId)) {
+          localGames.push(userId);
+          console.log('User added to local games:', userId);
+        } else {
+          console.log('User already in local games:', userId);
+          return ;
+        }
         const gameRoom = new GameRoom(
           [{ userId, socket: conn }]
         )
@@ -84,9 +94,13 @@ async function gameRoutes(fastify) {
       const gameId = userToGame.get(userId)
       if (gameId) {
         const gameRoom = gameRooms.get(gameId)
-        // remove both userId of the gameRoom from userToGame
         gameRoom.players.forEach(player => {
           userToGame.delete(player.userId)
+          const localGameIndex = localGames.indexOf(player.userId)
+          if (localGameIndex !== -1 && gameRoom.playerCount === 1) {
+            localGames.splice(localGameIndex, 1)
+            console.log('User removed from local games:', player.userId)
+          }
         })
         gameRooms.delete(gameId)
       } else {
@@ -94,8 +108,6 @@ async function gameRoutes(fastify) {
         if (index !== -1)
           waitingPool.splice(index, 1)
       }
-      console.log('gameRooms size: ', gameRooms.size)
-      console.log('userToGame size: ', userToGame.size)
     })
   })
 }
