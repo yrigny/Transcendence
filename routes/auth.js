@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'
 import nodemailer from 'nodemailer'
 import { fileURLToPath } from 'node:url'
 import { ACTIVE_USERS } from '../server.js'
+import jwt from 'jsonwebtoken'; //token signing, verification and decoding
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -15,6 +16,20 @@ const transporter = nodemailer.createTransport({
 		pass: process.env.AUTH_PASS,
 	}
 })
+
+const secretkey = process.env.AUTH_KEY
+
+function createSessionToken(user)
+{
+  return jwt.sign({ name: user.name, id: user.id }, secretkey, { expiresIn: '1h'});
+}
+
+function setSessionCookie(reply, token)
+{
+  const cookie = `token=${token}; HttpOnly; Secure; SameSite=lax; Path=/; Max-Age=${60*60}`;// 1h max age currently
+  reply.header('Set-Cookie', cookie);
+}
+
 const TWO_FA_CODES = new Map()
 
 async function authRoutes(fastify) {
@@ -83,7 +98,7 @@ async function authRoutes(fastify) {
 		const user = fastify.sqlite.prepare('SELECT * FROM users WHERE name = ?').get(username)
 		const code = Math.floor(100000 + Math.random() * 900000).toString()
 		const expiresAt = Date.now() + 5 * 60 * 1000 // 5 minutes
-		TWO_FA_CODES.set(username, { code, expiresAt })
+		TWO_FA_CODES.set(username, { code, expiresAt, user })
 		await transporter.sendMail({
 			from: 'realyifandiao@gmail.com',
 			to: user.email,
@@ -119,16 +134,13 @@ async function authRoutes(fastify) {
 			return res.status(400).send({ error: 'Invalid 2FA code' })
 		}
 		TWO_FA_CODES.delete(username)
-		console.log('User logged in successfully: ', username)
-		const token = fastify.jwt.sign({ username })
+		console.log('User logged in successfully: ', entry.user.name)
+		const token = createSessionToken(entry.user);
+		setSessionCookie(res, token);
+		//const token = fastify.jwt.sign({ username })
 		console.log('Token generated: ', token)
 		// save active user in map
 		ACTIVE_USERS.set(username, { loggedInAt: Date.now() })
-		res.setCookie('token', token, {
-			httpOnly: true,
-			path: '/',
-			maxAge: 60 * 60, // 1 hour
-		})
 		// print all active users
 		console.log('Active users: ')
 		ACTIVE_USERS.forEach((value, key) => {
@@ -162,16 +174,13 @@ async function authRoutes(fastify) {
 		if (user.two_fa_enabled) {
 			return res.status(206).send({ step: '2FA required' })
 		}
-		console.log('User logged in successfully: ', username)
-		const token = fastify.jwt.sign({ username })
+		console.log('User logged in successfully: ', user.username)
+		//const token = fastify.jwt.sign({ username })
+		const token = createSessionToken(user);
+		setSessionCookie(res, token);
 		console.log('Token generated: ', token)
 		// save active user in map
 		ACTIVE_USERS.set(username, { loggedInAt: Date.now() })
-		res.setCookie('token', token, {
-			httpOnly: true,
-			path: '/',
-			maxAge: 60 * 60, // 1 hour
-		})
 		// print all active users
 		console.log('Active users: ')
 		ACTIVE_USERS.forEach((value, key) => {
@@ -181,8 +190,11 @@ async function authRoutes(fastify) {
 	})
 
 	fastify.get('/auth/logout', async function (request, reply) {
-		const user = await request.jwtVerify()
-		ACTIVE_USERS.delete(user.username)
+		//const user = await request.jwtVerify()
+		const token = request.cookies.token
+		const user = jwt.verify(token, secretkey);
+		console.log('verified token for username:', user.name, user.id);
+		ACTIVE_USERS.delete(user.name)
 		console.log('Logging out user: ', user.username)
 		reply.clearCookie('token', { path: '/' })
 		return reply.redirect('/home')
@@ -195,9 +207,11 @@ async function authRoutes(fastify) {
 			if (!token) {
 				return reply.status(400).send({ loggedIn: false })
 			}
-			const user = await request.jwtVerify()
-			if (ACTIVE_USERS.has(user.username))
-				reply.status(200).send({ loggedIn: true, username: user.username })
+			//const user = await request.jwtVerify()
+			const user = jwt.verify(token, secretkey);
+			console.log('verified token for username:', user.name, user.id);
+			if (ACTIVE_USERS.has(user.name))
+				reply.status(200).send({ loggedIn: true, username: user.name })
 			else
 				reply.status(401).send({ loggedIn: false })
 		} catch (error) {

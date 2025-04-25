@@ -63,7 +63,7 @@ async function initTournament() {
 	// Open websocket connection
 	const user = await fetch('/auth/status', { method: 'GET', credentials: 'include' })
 		.then(res => res.json());
-	const socket = new WebSocket(`ws://${location.host}/ws/tournament`);
+	const socket = new WebSocket(`wss://${location.host}/ws/tournament`);
 
 	socket.onopen = () => {
 		console.log('Tournament WebSocket connection opened');

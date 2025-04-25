@@ -10,16 +10,23 @@ import gameRoutes from './game/game.js'
 import multipart from '@fastify/multipart'
 import userRoutes from './routes/user.js'
 import formbody from '@fastify/formbody'
-import fastifyJwt from '@fastify/jwt'
+//import fastifyJwt from '@fastify/jwt'
 import fastifyCookie from '@fastify/cookie'
 import authRoutes from './routes/auth.js'
 import matchesRoutes from './routes/matches.js'
-
-const fastify = Fastify({logger: true})
-export const ACTIVE_USERS = new Map()
+import { readFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+const fastify = Fastify({
+  https: {
+    key: readFileSync(path.join(__dirname, 'certs/server.key')),
+    cert: readFileSync(path.join(__dirname, 'certs/server.cert'))
+  },
+  logger: true
+})
+export const ACTIVE_USERS = new Map()
 
 fastify.register(routes)
 fastify.register(FastifyStatic, { root: path.join(__dirname, 'public'), prefix: '/' })
@@ -31,8 +38,8 @@ await fastify.register(multipart)
 fastify.register(userRoutes)
 await fastify.register(formbody)
 await fastify.register(fastifyCookie)
-await fastify.register(fastifyJwt, {secret: 'supersecret', 
-  cookie: { cookieName: 'token', signed: false }})
+//await fastify.register(fastifyJwt, {secret: 'supersecret', 
+//  cookie: { cookieName: 'token', signed: false }})
 fastify.register(authRoutes)
 fastify.register(matchesRoutes)
 
