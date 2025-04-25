@@ -1,3 +1,4 @@
+// client.js
 import displayHome from "./displayHome.js";
 import displayGame from "./displayGame.js";
 import displayLogin from "./displayLogin.js";
@@ -6,11 +7,28 @@ import displayDashboard from "./displayDashboard.js";
 import displayFriends from "./displayFriends.js";
 import displayTournament from "./displayTournament.js";
 
-const render = (): void => {
+function clearAllInjects(): void {
+	const injectIds = [
+		'home-inject',
+		'game-inject',
+		'tournament-inject',
+		'dashboard-inject',
+		'friends-inject',
+		'settings-inject',
+		'login-inject',
+		'register-inject',
+	];
+	injectIds.forEach(id => {
+		const elem = document.getElementById(id);
+		if (elem) elem.innerHTML = '';
+	});
+}
+
+function render(): void {
+	clearAllInjects();
+
 	switch (window.location.pathname) {
 		case "/":
-			displayHome();
-			break;
 		case "/home":
 			displayHome();
 			break;
@@ -38,7 +56,7 @@ const render = (): void => {
 	}
 }
 
-const updateAuthUI = async (): Promise<void> => {
+async function updateAuthUI(): Promise<void> {
 	let isLoggedIn = false
 	let username = ''
 	try {
@@ -54,9 +72,6 @@ const updateAuthUI = async (): Promise<void> => {
 	} catch (error) {
 		console.error('Login check failed:', error)
 	}
-	console.log('User logged in:', isLoggedIn, 'Username:', username);
-
-	console.log('User logged in:', isLoggedIn, 'Username:', username)
 	
 	const userElem = document.getElementById('logged-in-user');
 	if (userElem) userElem.textContent = username;
@@ -68,7 +83,25 @@ const updateAuthUI = async (): Promise<void> => {
 	if (logoutSection) logoutSection.style.display = isLoggedIn ? 'block' : 'none';
 }
 
+//avoid full page reload
+function setupSpaNavigation(): void {
+	const links = document.querySelectorAll<HTMLAnchorElement>('[data-link]'); //<a>
+	links.forEach((link: HTMLAnchorElement) => {
+		link.addEventListener('click', (event: MouseEvent) => {
+			event.preventDefault();
+			const href = link.getAttribute('href');
+			if (href) {
+				history.pushState(null, '', href);
+				render();
+			}
+		});
+	});
+}
+// Handle back/forward button navigation
+window.addEventListener('popstate', () => {
+	render();
+});
+
 updateAuthUI();
 render();
-
-  
+setupSpaNavigation();
