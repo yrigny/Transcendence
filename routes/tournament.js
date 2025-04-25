@@ -182,7 +182,6 @@ async function tournamentManager(fastify) {
 			match2: { players: [], readyStatus: [false, false], gaming: false, winner: null }
 		}
 		tournamentState.final = { players: [], readyStatus: [false, false], gaming: false, winner: null }
-		broadcastToAllConnections({ type: 'tournament-reset' })
 		while(playersPool.length) playersPool.pop();
 		// Remove and close all connections
 		connectionsPool.forEach(client => {

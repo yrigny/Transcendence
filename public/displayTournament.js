@@ -52,9 +52,6 @@ async function initTournament() {
 			fillTournamentMap(message, user.username, socket);
 			enterButtonController(user, socket);
 		}
-		// else if (message.type === 'tournament-reset') {
-		// 	resetTournament();
-		// }
 		else if (message.type === 'tournament-update-pool') {
 			fillPlayersPool(message.playersPool);
 		}
@@ -181,7 +178,10 @@ async function fillTournamentMap(message, userId, socket) { // object, object, s
 function enterButtonController(user, socket) { // object from /auth/status response, socket
 	const enterButton = document.getElementById('enter-tournament-btn');
 	enterButton.addEventListener('click', () => {
-		socket.send(JSON.stringify({ type: 'tournament-join-pool', userId: user.username }));
+		if (!user.isLoggedIn)
+			alert('You must be logged in to enter the tournament.');
+		else
+			socket.send(JSON.stringify({ type: 'tournament-join-pool', userId: user.username }));
 	});
 }
 
