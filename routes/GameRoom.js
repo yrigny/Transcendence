@@ -16,7 +16,7 @@ const agent = new https.Agent({
 });
 
 export class GameRoom {
-	constructor(players) {
+	constructor(players, isTournamentGame = false) {
 		if (players.length === 2)
 			console.log('Creating game room for ', players[0].userId, ' and ', players[1].userId)
 		else if (players.length === 1)
@@ -28,6 +28,7 @@ export class GameRoom {
 		this.state = this.initState()
 		this.putPlayerInfo()
 		this.startGameLoop()
+		this.isTournamentGame = isTournamentGame
 	}
 
 	initState() {
@@ -138,6 +139,11 @@ export class GameRoom {
 				console.log("Failed to save game: ", error);
 			}
 		}
-		this.players.forEach(player => player.socket.close())
+		if (this.isTournamentGame && typeof this.getGameResult === 'function') {
+			await this.getGameResult()
+		}
+		if (!this.isTournamentGame) {
+			this.players.forEach(player => player.socket.close())
+		}
 	}
 }

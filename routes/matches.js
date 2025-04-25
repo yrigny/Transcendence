@@ -22,6 +22,31 @@ async function matchesRoutes(fastify, options) {
 		}
 	})
 
+	// Get match records for a specific user
+	fastify.get('/matches/:user', async (request, reply) => {
+		const { user } = request.params;
+		try {
+			const matches = fastify.sqlite.prepare(`
+				SELECT 
+				m.id, 
+				u1.name AS player1, 
+				u2.name AS player2, 
+				m.player1_score, 
+				m.player2_score, 
+				m.game_start_time, 
+				m.game_end_time 
+				FROM matches m
+				JOIN users u1 ON m.player1 = u1.name
+				JOIN users u2 ON m.player2 = u2.name
+				WHERE u1.name = ? OR u2.name = ?
+			`).all(user, user);
+			reply.header('Content-Type', 'application/json').send(matches);
+		} catch (error) {
+			console.error('Database error:', error);
+			reply.status(500).send({ error: 'Internal Server Error' });
+		}
+	})
+
 	// Record a new match
 	fastify.post('/matches', async (request, reply) => {
 		console.log(request.body);

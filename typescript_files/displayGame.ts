@@ -131,7 +131,7 @@ async function startGame(isLocalGame: boolean): Promise<void> {
     const userId = await getUserId() || 'Local User';
     console.log('User ID:', userId);
 
-    const socket = new WebSocket(`wss://${location.host}/ws`);
+    const socket = new WebSocket(`wss://${location.host}/ws/game`);
 
     socket.onopen = () => {
         console.log('WebSocket connection opened');

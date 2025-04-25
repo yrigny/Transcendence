@@ -6,7 +6,7 @@ import path from 'node:path'
 import routes from './routes/routes.js'
 import dbConnector from './plugins/database.js'
 import fastifyWebsocket from '@fastify/websocket'
-import gameRoutes from './game/game.js'
+import gameRoutes from './routes/game.js'
 import multipart from '@fastify/multipart'
 import userRoutes from './routes/user.js'
 import formbody from '@fastify/formbody'
@@ -14,6 +14,7 @@ import formbody from '@fastify/formbody'
 import fastifyCookie from '@fastify/cookie'
 import authRoutes from './routes/auth.js'
 import matchesRoutes from './routes/matches.js'
+import tournamentManager from './routes/tournament.js'
 import { readFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url)
@@ -42,7 +43,7 @@ await fastify.register(fastifyCookie)
 //  cookie: { cookieName: 'token', signed: false }})
 fastify.register(authRoutes)
 fastify.register(matchesRoutes)
-
+fastify.register(tournamentManager)
 
 try {
   await fastify.listen({ port: 6789, host: '0.0.0.0' })

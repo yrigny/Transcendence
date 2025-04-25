@@ -5,7 +5,7 @@ async function gameRoutes(fastify) {
   const gameRooms = new Map() // gameId -> GameRoom
   const userToGame = new Map() // userId -> gameId
 
-  fastify.get('/ws', { websocket: true }, (conn, req) => {
+  fastify.get('/ws/game', { websocket: true }, (conn, req) => {
     let userId = ''
 
     conn.on('message', (msg) => {
