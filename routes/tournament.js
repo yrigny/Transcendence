@@ -1,14 +1,3 @@
-// Done: When a user connects to the tournament page (ws/tournament), they will be added to the connection pool
-// Note: connection pool != players pool, there can be audience users who don't participate in the tournament but can see what's going on
-// Done: The server will first send the tournament state to the newly connected user
-// Ongoing: The server will keep sending updated state (playersPool or tournamentMap) to all connected users upon any changes (GameRoom only sends to players, need to override its broadcast method)
-// Done: When a user joins the players pool, they will be added to the players pool
-// Done: When a players pool is full (4 players), the server will matchmake the players according to their win percentage to plan 2 semi-finals
-// Done: When a player is ready for a planned game, the server will update the readyStatus of the target game
-// Done: When both semifinals (4 players) are ready to play, the server will start a game, wait for it to finish, then start another game, wait for it to finish, and then start the final game
-// Done: When a semi-final is finished, the server will update the tournament state and send the updated tournament map to all connected users (the winner will show up in the final game placeholder)
-// Done: When the final game is finished, the server will update the tournament state and send the updated state to all connected users (the champion will show up in the champion placeholder)
-// When a user disconnects, they will be removed from the players pool
 
 import { GameRoom } from './GameRoom.js'
 
