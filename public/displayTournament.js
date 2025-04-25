@@ -49,13 +49,17 @@ async function initTournament() {
 
 		if (message.type === 'tournament-fill-page') {
 			fillPlayersPool(message.playersPool);
-			fillTournamentMap(message.semifinals, message.final, user.username, socket);
+			fillTournamentMap(message, user.username, socket);
+			enterButtonController(user, socket);
 		}
+		// else if (message.type === 'tournament-reset') {
+		// 	resetTournament();
+		// }
 		else if (message.type === 'tournament-update-pool') {
 			fillPlayersPool(message.playersPool);
 		}
 		else if (message.type === 'tournament-update-map') {
-			fillTournamentMap(message.semifinals, message.final, user.username, socket);
+			fillTournamentMap(message, user.username, socket);
 		}
 		else if (message.type === 'tournament-update-ready-status') {
 			const matchDiv = document.querySelector(`[data-match="${message.matchIndex}"]`);
@@ -63,26 +67,35 @@ async function initTournament() {
 			button.classList.remove('bg-gray-400');
 			button.classList.add('bg-green-600');
 		}
-		if (message.type === 'tournament-game-start') {
-			// Hide tournament and show game
+		else if (message.type === 'tournament-game-start') {
+			console.log('Game started, players:', message.player1, message.player2);
 			document.getElementById('tournament-zone').classList.add('hidden');
 			document.getElementById('game-zone').classList.remove('hidden');
-			putUserInfo(message); // An array of 4 players name, need to call twice separately
-			startGame(user.username, socket); // and addEventListener to keydown
+			// If the game is played by the current user, add event listener to keydown
+			if (message.player1 === user.username || message.player2 === user.username)
+				startGame(user.username, socket);
+			putUserInfo(message);
 		}
-		if (message.type === 'tournament-game-output') {
+		else if (message.type === 'output') {
 			draw(ctx, canvas, message);
 		}
-		if (message.type === 'tournament-game-end') { // seems not entering, to debug
-			// Hide game and show tournament
+		else if (message.type === 'tournament-game-end') {
 			document.getElementById('game-zone').classList.add('hidden');
 			document.getElementById('tournament-zone').classList.remove('hidden');
+			console.log('Game ended, message:', message);
+			fillTournamentMap(message, user.username, socket);
+			// If the game is played by the current user, remove event listener to keydown
+			if (message.player1 === user.username || message.player2 === user.username)
+				endGame(user.username, socket);
 		}
-		if (message.type === 'error') {
+		else if (message.type === 'error') {
 			alert(message.message);
 		}
 	}
-	enterButtonController(user, socket);
+	socket.onclose = () => {
+		console.log('Tournament WebSocket connection closed');
+		resetTournament();
+	}
 }
 
 async function fillPlayersPool(playersPool) { // array of userId in string
@@ -98,16 +111,19 @@ async function fillPlayersPool(playersPool) { // array of userId in string
 
 // situation 1: 2 semifinals are planned
 // situation 2: Player ready status is set to true
-// situation 3: Final match is planned
-async function fillTournamentMap(semifinals, final, userId, socket) { // object, object, string, socket
+// situation 3: Final match player is set
+// situation 4: Winner is set
+// situation 5: New client enters the tournament page
+async function fillTournamentMap(message, userId, socket) { // object, object, string, socket
 	const semifinalMatchOne = document.querySelector(`[data-match="0"]`);
 	const semifinalMatchTwo = document.querySelector(`[data-match="1"]`);
 	const finalMatch = document.querySelector('.final-match');
 	const champion = document.querySelector('.winner-container');
-	const matchOneData = semifinals.match1;
-	const matchTwoData = semifinals.match2;
+	const matchOneData = message.semifinals.match1;
+	const matchTwoData = message.semifinals.match2;
 
-	if (matchOneData.players.length > 0) { // matchmaking plans 2 semifinals oneshot, so just check if match 1 is planned and can fill the 2 semifinals' info together
+	if (matchOneData.players.length > 0 && 
+		((!matchOneData.winner && !matchTwoData.winner) || message.type === 'tournament-fill-page')) {
 		semifinalMatchOne.querySelector('.player1-name').textContent = matchOneData.players[0];
 		semifinalMatchOne.querySelector('.player2-name').textContent = matchOneData.players[1];
 		semifinalMatchOne.querySelector('.player1-avatar').src = await fetch(`/users/${matchOneData.players[0]}/avatar`).then(res => res.json()).then(data => data.avatar);
@@ -116,24 +132,49 @@ async function fillTournamentMap(semifinals, final, userId, socket) { // object,
 		semifinalMatchTwo.querySelector('.player2-name').textContent = matchTwoData.players[1];
 		semifinalMatchTwo.querySelector('.player1-avatar').src = await fetch(`/users/${matchTwoData.players[0]}/avatar`).then(res => res.json()).then(data => data.avatar);
 		semifinalMatchTwo.querySelector('.player2-avatar').src = await fetch(`/users/${matchTwoData.players[1]}/avatar`).then(res => res.json()).then(data => data.avatar);
-		if (matchOneData.readyStatus[0] === false && matchOneData.readyStatus[1] === false)
-			readyButtonController(userId, socket, 0);
-		if (matchTwoData.readyStatus[0] === false && matchTwoData.readyStatus[1] === false)
-			readyButtonController(userId, socket, 1);
+		readyButtonController(userId, socket, 0);
+		readyButtonController(userId, socket, 1);
 	}
-
-	if (final.players.length > 0) {
-		finalMatch.querySelector('.player1-name').textContent = final.players[0];
-		finalMatch.querySelector('.player2-name').textContent = final.players[1];
-		finalMatch.querySelector('.player1-avatar').src = await fetch(`/users/${final.players[0]}/avatar`).then(res => res.json()).then(data => data.avatar);
-		finalMatch.querySelector('.player2-avatar').src = await fetch(`/users/${final.players[1]}/avatar`).then(res => res.json()).then(data => data.avatar);
-		if (final.readyStatus[0] === false && final.readyStatus[1] === false)
-			readyButtonController(userId, socket, 2);
+	// if the page is filled for the first time, update the ready button color
+	if (message.type === 'tournament-fill-page') {
+		if (matchOneData.readyStatus[0]) {
+			semifinalMatchOne.querySelectorAll('.ready-btn')[0].classList.remove('bg-gray-400');
+			semifinalMatchOne.querySelectorAll('.ready-btn')[0].classList.add('bg-green-600');
+		}
+		if (matchOneData.readyStatus[1]) {
+			semifinalMatchOne.querySelectorAll('.ready-btn')[1].classList.remove('bg-gray-400');
+			semifinalMatchOne.querySelectorAll('.ready-btn')[1].classList.add('bg-green-600');
+		}
+		if (matchTwoData.readyStatus[0]) {
+			semifinalMatchTwo.querySelectorAll('.ready-btn')[0].classList.remove('bg-gray-400');
+			semifinalMatchTwo.querySelectorAll('.ready-btn')[0].classList.add('bg-green-600');
+		}
+		if (matchTwoData.readyStatus[1]) {
+			semifinalMatchTwo.querySelectorAll('.ready-btn')[1].classList.remove('bg-gray-400');
+			semifinalMatchTwo.querySelectorAll('.ready-btn')[1].classList.add('bg-green-600');
+		}
+		if (message.final.readyStatus[0]) {
+			finalMatch.querySelectorAll('.ready-btn')[0].classList.remove('bg-gray-400');
+			finalMatch.querySelectorAll('.ready-btn')[0].classList.add('bg-green-600');
+		}
+		if (message.final.readyStatus[1]) {
+			finalMatch.querySelectorAll('.ready-btn')[1].classList.remove('bg-gray-400');
+			finalMatch.querySelectorAll('.ready-btn')[1].classList.add('bg-green-600');
+		}
 	}
-
-	if (final.winner != null) {
-		champion.querySelector('.player-name').textContent = final.winner;
-		champion.querySelector('.player-avatar').src = await fetch(`/users/${final.winner}/avatar`).then(res => res.json()).then(data => data.avatar);
+	if (matchOneData.winner) {
+		finalMatch.querySelector('.player1-name').textContent = matchOneData.winner;
+		finalMatch.querySelector('.player1-avatar').src = await fetch(`/users/${matchOneData.winner}/avatar`).then(res => res.json()).then(data => data.avatar);
+	}
+	if (matchTwoData.winner) {
+		finalMatch.querySelector('.player2-name').textContent = matchTwoData.winner;
+		finalMatch.querySelector('.player2-avatar').src = await fetch(`/users/${matchTwoData.winner}/avatar`).then(res => res.json()).then(data => data.avatar);
+	}
+	if (message.final.players.length === 2 && !message.final.readyStatus[0] && !message.final.readyStatus[1])
+		readyButtonController(userId, socket, 2);
+	if (message.final.winner != null) {
+		champion.querySelector('.player-name').textContent = message.final.winner;
+		champion.querySelector('.player-avatar').src = await fetch(`/users/${message.final.winner}/avatar`).then(res => res.json()).then(data => data.avatar);
 	}
 }
 
@@ -153,7 +194,6 @@ function readyButtonController(userId, socket, matchNumber) { // string, socket,
 		button.classList.remove('hidden');
 		const playerName = button.parentElement.querySelector('span').textContent;
 		if (playerName === userId) {
-			console.log('User is the current player:', userId);
 			// Add hover effect and event listener
 			button.classList.add('hover:bg-green-600');
 			button.addEventListener('click', () => {
@@ -181,32 +221,162 @@ async function startGame(userId, socket) {
     });
 }
 
-async function putUserInfo(message) {
-    const leftUserAvatar = document.getElementById("player1-avatar");
-    const rightUserAvatar = document.getElementById("player2-avatar");
-    const leftUserName = document.getElementById("player1");
-    const rightUserName = document.getElementById("player2");
-    leftUserAvatar.src = await fetch(`/users/${message.player1}/avatar`).then(res => res.json()).then(data => data.avatar);
-    rightUserAvatar.src = await getUserAvatarPath(message.player2);
-    leftUserName.innerText = message.player1;
-    rightUserName.innerText = message.player2;
+async function endGame(userId, socket) { // remove event listener doesn't work but not a big deal
+	console.log(`Ending remote game...`);
+	document.removeEventListener("keydown", (e) => {
+		const message = { type: "input", userId: userId };
+		if (e.key === "s") message.sKey = false;
+		if (e.key === "w") message.wKey = false;
+		if (e.key === "l") message.lKey = false;
+		if (e.key === "o") message.oKey = false;
+		if (socket.readyState === WebSocket.OPEN) {
+			socket.send(JSON.stringify(message));
+		}
+	});
 }
 
-async function getUserAvatarPath(username) {
-    try {
-        const res = await fetch(`/users/${username}/avatar`);
-        if (res.ok) {
-            const data = await res.json();
-            console.log('User avatar: ', data.avatar);
-            return data.avatar;
-        } else {
-            console.error('Failed to fetch user avatar:', res.status);
-            return '/default-avatar.png';
-        }
-    } catch (error) {
-        console.error('Error fetching user avatar:', error);
-        return '/default-avatar.png';
-    }
+function resetTournament() {
+	document.getElementById('tournament-inject').innerHTML = `
+		<div id="tournament-zone">
+			<!-- Waiting Pool Section -->
+			<div class="w-full max-w-4xl mb-8">
+				<h2 class="text-xl font-semibold mb-4 w-full">Waiting Pool</h2>
+				<div class="flex w-full">
+					<button id="enter-tournament-btn" class="enter-btn bg-blue-500 text-lg font-semibold text-white py-2 px-4 mr-4 rounded-lg hover:bg-blue-600">Enter Tournament</button>
+					<div id="waiting-pool" class="grid grid-cols-4 gap-4 bg-white p-4 rounded-lg shadow text-indigo-600">
+						<div class="player-slot flex flex-1 flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg" data-slot="0" data-status="available">
+							<img src="" class="h-16 w-16 rounded-full border-4 border-gray-200 bg-gray-300"/>
+							<p class="p-1">Player</p>
+						</div>
+						<div class="player-slot flex flex-1 flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg" data-slot="1" data-status="available">
+							<img src="" class="h-16 w-16 rounded-full border-4 border-gray-200 bg-gray-300"/>
+							<p class="p-1">Player</p>
+						</div>
+						<div class="player-slot flex flex-1 flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg" data-slot="2" data-status="available">
+							<img src="" class="h-16 w-16 rounded-full border-4 border-gray-200 bg-gray-300"/>
+							<p class="p-1">Player</p>
+						</div>
+						<div class="player-slot flex flex-1 flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg" data-slot="3" data-status="available">
+							<img src="" class="h-16 w-16 rounded-full border-4 border-gray-200 bg-gray-300"/>
+							<p class="p-1">Player</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tournament Bracket -->
+			<div class="w-full max-w-4xl">
+				<div class="grid grid-cols-3 gap-4 mb-4 text-center">
+					<h3 class="text-white text-lg font-semibold">Semifinals</h3>
+					<h3 class="text-white text-lg font-semibold">Finals</h3>
+					<h3 class="text-white text-lg font-semibold">Champion</h3>
+				</div>
+				<div class="grid grid-cols-3 gap-2 bg-white p-6 rounded-lg shadow">
+					<!-- Semifinal Column -->
+					<div class="semifinal-column">
+						<div class="semifinal-match mb-8 border border-gray-200 rounded-lg p-4" data-match="0">
+							<div class="semifinal-players">
+								<div class="semifinal-player flex justify-between items-center mb-2 p-2 rounded bg-gray-50">
+									<div class="flex items-center">
+										<img src="" class="player1-avatar w-10 h-10 rounded-full bg-gray-300" />
+										<span class="player1-name text-indigo-600 px-2">TBD</span>
+									</div>
+									<button class="hidden ready-btn bg-gray-400 text-white py-1 px-1 rounded text-sm">Ready</button>
+								</div>
+								<div class="semifinal-player flex justify-between items-center p-2 rounded bg-gray-50">
+									<div class="flex items-center">
+										<img src="" class="player2-avatar w-10 h-10 rounded-full bg-gray-300" />
+										<span class="player2-name text-indigo-600 px-2">TBD</span>
+									</div>
+									<button class="hidden ready-btn bg-gray-400 text-white py-1 px-1 rounded text-sm">Ready</button>
+								</div>
+							</div>
+						</div>	
+						<div class="semifinal-match border border-gray-200 rounded-lg p-4" data-match="1">
+							<div class="semifinal-players">
+								<div class="semifinal-player flex justify-between items-center mb-2 p-2 rounded bg-gray-50">
+									<div class="flex items-center">
+									<img src="" class="player1-avatar w-10 h-10 rounded-full bg-gray-300" />
+									<span class="player1-name text-indigo-600 px-2">TBD</span>
+									</div>
+									<button class="hidden ready-btn bg-gray-400 text-white py-1 px-1 rounded text-sm">Ready</button>
+								</div>
+								<div class="semifinal-player flex justify-between items-center p-2 rounded bg-gray-50">
+									<div class="flex items-center">
+										<img src="" class="player2-avatar w-10 h-10 rounded-full bg-gray-300" />
+										<span class="player2-name text-indigo-600 px-2">TBD</span>
+									</div>
+									<button class="hidden ready-btn bg-gray-400 text-white py-1 px-1 rounded text-sm">Ready</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Final Column -->
+					<div class="final-column flex items-center justify-center h-full">
+						<div class="final-match border border-gray-200 rounded-lg p-4" data-match="2">
+							<div class="final-players">
+								<div class="final-player flex justify-between items-center mb-2 p-2 rounded bg-gray-50">
+									<div class="flex items-center">
+										<img src="" class="player1-avatar w-10 h-10 rounded-full bg-gray-300" />
+										<span class="player1-name text-indigo-600 px-2">TBD</span>
+									</div>
+									<button class="hidden ready-btn bg-gray-400 text-white py-1 px-1 rounded text-sm">Ready</button>
+								</div>
+								<div class="final-player flex justify-between items-center p-2 rounded bg-gray-50">
+									<div class="flex items-center">
+										<img src="" class="player2-avatar w-10 h-10 rounded-full bg-gray-300" />
+										<span class="player2-name text-indigo-600 px-2">TBD</span>
+									</div>
+									<button class="hidden ready-btn bg-gray-400 text-white py-1 px-1 rounded text-sm">Ready</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Winner Column -->
+					<div class="winner-column flex items-center justify-center h-full">
+						<div class="winner-container flex justify-center items-center border border-gray-200 rounded-lg p-4 w-full">
+							<div class="flex items-center">
+								<img src="" class="player-avatar w-10 h-10 rounded-full bg-gray-300" />
+								<span class="player-name text-indigo-600 px-2">TBD</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Game Zone -->
+		<div id="game-zone" class="hidden flex min-h-screen flex-col items-center p-16">
+			<!-- Top Section: Circles with Text -->
+			<div class="mb-8 flex w-full max-w-xl justify-between items-center h-full">
+				<!-- Left Circle (Profile) -->
+				<div class="flex flex-col items-center">
+					<img id="player1-avatar" src="" class="h-20 w-20 rounded-full border-4 border-gray-200 bg-gray-300"/>
+					<p id="player1" class="mt-2 text-sm text-white">Player 1</p>
+				</div>
+				<!-- Right Circle (Game Result) -->
+				<div class="flex flex-col items-center">
+					<img id="player2-avatar" src="" class="h-20 w-20 rounded-full border-4 border-gray-200 bg-gray-300"/>
+					<p id="player2" class="mt-2 text-sm text-white">Player 2</p>
+				</div>
+			</div>
+			<!-- Bottom Section: Game Canvas -->
+			<canvas id="game-canvas" class="rounded-lg bg-black" width="600" height="400"></canvas>
+		</div>
+	`;
+}
+
+async function putUserInfo(message) {
+	const gameZone = document.getElementById('game-zone');
+    const leftUserAvatar = gameZone.querySelectorAll('img')[0];
+	const rightUserAvatar = gameZone.querySelectorAll('img')[1];
+    const leftUserName = gameZone.querySelectorAll('p')[0];
+    const rightUserName = gameZone.querySelectorAll('p')[1];
+    leftUserAvatar.src = await fetch(`/users/${message.player1}/avatar`).then(res => res.json()).then(data => data.avatar);
+    rightUserAvatar.src = await fetch(`/users/${message.player2}/avatar`).then(res => res.json()).then(data => data.avatar);
+    leftUserName.innerText = message.player1;
+    rightUserName.innerText = message.player2;
 }
 
 function drawRect(ctx, x, y, w, h, color) {

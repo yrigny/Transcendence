@@ -13,7 +13,7 @@ export class GameRoom {
 		this.state = this.initState()
 		this.putPlayerInfo()
 		this.startGameLoop()
-		this.isTournamentGame
+		this.isTournamentGame = isTournamentGame
 	}
 
 	initState() {
@@ -123,9 +123,11 @@ export class GameRoom {
 				console.log("Failed to save game: ", error);
 			}
 		}
-		if (this.isTournamentGame && typeof this.getGameResult === 'function')
+		if (this.isTournamentGame && typeof this.getGameResult === 'function') {
 			await this.getGameResult()
-		if (!this.isTournamentGame)
+		}
+		if (!this.isTournamentGame) {
 			this.players.forEach(player => player.socket.close())
+		}
 	}
 }
