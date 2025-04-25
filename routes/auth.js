@@ -11,8 +11,8 @@ const __dirname = path.dirname(__filename)
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
 	auth: {
-		user: 'realyifandiao@gmail.com',
-		pass: 'tzxk wktx sirz xiil'
+		user: process.env.AUTH_MAIL,
+		pass: process.env.AUTH_PASS,
 	}
 })
 const TWO_FA_CODES = new Map()

@@ -4,6 +4,8 @@ services:
     build: .
     ports:
       - "6789:6789"
+    env_file:
+      - .env
     volumes:
       - db-data:/app/volume/database
       - uploads:/app/volume/uploads
