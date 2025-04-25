@@ -1,19 +1,11 @@
 // Type definitions
-interface GameMessage {
+type GameMessage = {
     type: string;
-    ball?: { x: number; y: number };
-    paddles?: { y: number }[];
-    scores?: { left: string; right: string };
-    player1?: string;
-    player2?: string;
-}
-
-interface AvatarResponse {
-    avatar: string;
-}
-
-interface AuthStatus {
-    username?: string;
+    ball: { x: number; y: number };
+    paddles: { y: number }[];
+    scores: { left: string; right: string };
+    player1: string;
+    player2: string;
 }
 
 function displayGame(): void {
@@ -40,7 +32,7 @@ async function getUserId(): Promise<string> {
             method: 'GET',
             credentials: 'include',
         });
-        const data: AuthStatus = await res.json();
+        const data = await res.json();
         return data.username || '';
     } catch (error) {
         console.error('Login check failed:', error);
@@ -52,7 +44,7 @@ async function getUserAvatarPath(username: string): Promise<string> {
     try {
         const res = await fetch(`/users/${username}/avatar`);
         if (res.ok) {
-            const data: AvatarResponse = await res.json();
+            const data = await res.json();
             console.log('User avatar:', data.avatar);
             return data.avatar;
         } else {
@@ -150,7 +142,7 @@ async function startGame(isLocalGame: boolean): Promise<void> {
     };
 
     socket.onmessage = (event: MessageEvent) => {
-        const message: GameMessage = JSON.parse(event.data);
+        const message = JSON.parse(event.data);
         if (message.type === (isLocalGame ? "game-start-local" : "game-start-remote")) {
             putUserInfo(message, isLocalGame);
         }
