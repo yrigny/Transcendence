@@ -14,7 +14,6 @@ function clearAllInjects(): void {
 		'tournament-inject',
 		'dashboard-inject',
 		'friends-inject',
-		'settings-inject',
 		'login-inject',
 		'register-inject',
 	];
