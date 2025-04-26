@@ -1,17 +1,31 @@
+
 function displayGame() {
-    fetch('game.html')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.text();
-        })
-        .then(html => {
-            const targetDiv = document.getElementById('game-inject');
-            targetDiv.innerHTML = html;
-            initGame();
-        })
-        .catch(err => console.error('Failed to fetch game.html:', err));
+    const targetDiv = document.getElementById('game-inject');
+    targetDiv.innerHTML = `
+        <div class="flex min-h-screen flex-col items-center p-16">
+            <!-- Top Section: Circles with Text -->
+            <div class="mb-8 flex w-full max-w-xl justify-between items-center h-full">
+                <!-- Left Circle (Profile) -->
+                <div class="flex flex-col items-center">
+                    <img id="player1-avatar" src="" class="h-20 w-20 rounded-full border-4 border-gray-200 bg-gray-300"/>
+                    <p id="player1" class="mt-2 text-sm text-white">Player 1</p>
+                </div>
+                <!-- Middle Box (Game Start) -->
+                <div class="flex flex-col items-center">
+                    <button id="start-local-game" class="mb-2 w-full rounded-md bg-gray-300 p-3 transition duration-200 hover:bg-blue-300 text-gray-700">Start Local Game</button>
+                    <button id="start-remote-game" class="w-full rounded-md bg-gray-300 p-3 transition duration-200 hover:bg-blue-300 text-gray-700">Start Remote Game</button>
+                </div>
+                <!-- Right Circle (Game Result) -->
+                <div class="flex flex-col items-center">
+                    <img id="player2-avatar" src="" class="h-20 w-20 rounded-full border-4 border-gray-200 bg-gray-300"/>
+                    <p id="player2" class="mt-2 text-sm text-white">Player 2</p>
+                </div>
+            </div>
+            <!-- Bottom Section: Game Canvas -->
+            <canvas id="game-canvas" class="rounded-lg bg-black" width="600" height="400"></canvas>
+        </div>
+    `;
+    initGame();
 }
 
 async function getUserId() {

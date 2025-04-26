@@ -1,19 +1,47 @@
 
 function displayFriends() {
-	fetch('friends.html')
-		.then(response => {
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
-			}
-			return response.text();
-		})
-		.then(html => {
-			const targetDiv = document.getElementById('friends-inject');
-			targetDiv.innerHTML = html;
-			addFriendHandler();
-			fillFriendsTable();
-		})
-		.catch(err => console.error('Failed to fetch friends.html:', err));
+
+	const targetDiv = document.getElementById('friends-inject');
+	targetDiv.innerHTML = `
+		<div class="p-10">
+			<h2 class="text-2xl font-bold text-white mb-6">My Friends</h2>
+
+			<!-- add friends -->
+			<form class="mb-6">
+				<input 
+					type="text" 
+					id="add-friend-input" 
+					placeholder="Enter username to add" 
+					class="p-3 w-full max-w-xs rounded-lg shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+					required
+				/>
+				<button 
+					id="add-friend-button" 
+					class="mt-3 p-3 w-full max-w-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none"
+				>
+					Add Friend
+				</button>
+			</form>
+
+			<!-- friends list -->
+			<div class="bg-white rounded-lg shadow-md p-6 min-h-[600px] min-w-[600px]">
+				<table class="w-full text-left border-collapse">
+					<thead>
+						<tr class="bg-indigo-600 text-white">
+							<th class="p-3 border-b text-center">Avatar</th>
+							<th class="p-3 border-b text-center">Username</th>
+							<th class="p-3 border-b text-center">Status</th>
+						</tr>
+					</thead>
+					<tbody id="friend-list">
+						<!-- Friends will be dynamically injected here -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+	`;
+	addFriendHandler();
+	fillFriendsTable();
 }
 
 async function addFriendHandler() {

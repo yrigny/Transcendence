@@ -144,7 +144,6 @@ async function tournamentManager(fastify) {
 	}
 
 	const startFinal = async (players) => {
-		console.log('Connection pool length:', connectionsPool.length)
 		tournamentState.final.gaming = true
 		console.log('Starting final with players:', players[0].userId, players[1].userId)
 		broadcastToAllConnections({ type: 'tournament-game-start', player1: players[0].userId, player2: players[1].userId })
@@ -211,8 +210,12 @@ async function tournamentManager(fastify) {
 			}
 			if (data.type === 'tournament-join-pool') {
 				console.log('User joining tournament pool:', userId)
-				let poolLength = tournamentState.playersName.length
-				console.log('Connections pool length:', connectionsPool.length)
+				// If user is not logged in, send error message and close connection
+				if (!userId) {
+					conn.send(JSON.stringify({ type: 'error', message: 'You must be logged in to enter the tournament' }))
+					conn.close()
+					return
+				}
 				// Add user to playersPool if not already present and pool is not full
 				if (!tournamentState.playersName.find(p => p === userId) && poolLength < 4) {
 					playersPool.push({ userId, socket: conn })

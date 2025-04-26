@@ -6,8 +6,47 @@ import displayDashboard from "./displayDashboard.js";
 import displayFriends from "./displayFriends.js";
 import displayTournament from "./displayTournament.js";
 
-const render = () => {
-	switch (window.location.pathname) {
+
+const clearAllInjects = () => {
+	const injectIds = [
+		'home-inject',
+		'game-inject',
+		'tournament-inject',
+		'dashboard-inject',
+		'friends-inject',
+		'login-inject',
+		'register-inject',
+	];
+	injectIds.forEach(injectId => {
+		document.getElementById(injectId).innerHTML = '';
+	});
+}
+
+const render = async () => {
+	clearAllInjects();
+
+	const protectedRoutes = ['/game', '/dashboard', '/friends'];
+    const currentPath = window.location.pathname;
+    let isLoggedIn = false;
+	try {
+		const res = await fetch('http://localhost:6789/auth/status', 
+			{ method: 'GET', credentials: 'include' });
+		if (res.ok) {
+			const data = await res.json();
+			isLoggedIn = data.loggedIn === true;
+		}
+	} catch (error) {
+		console.error('Failed to fetch auth status:', error);
+	}
+
+    // Redirect if trying to access protected route without login
+    if (protectedRoutes.includes(currentPath) && !isLoggedIn) {
+        window.history.pushState({}, '', '/login');
+        displayLogin();
+        return;
+    }
+
+	switch (currentPath) {
 		case "/":
 			displayHome();
 			break;
@@ -60,7 +99,20 @@ const updateAuthUI = async () => {
 	document.getElementById('logout-section').style.display = isLoggedIn ? 'block' : 'none';
 }
 
+function setupSpaNavigation() {
+	const links = document.querySelectorAll('a[data-link]');
+	links.forEach(link => {
+		link.addEventListener('click', (event) => {
+			event.preventDefault();
+			const targetPath = event.target.getAttribute('href');
+			window.history.pushState({}, '', targetPath);
+			render();
+		});
+	});
+}
+
+window.addEventListener('popstate', render);
+
 updateAuthUI();
 render();
-
-  
+setupSpaNavigation();
