@@ -159,7 +159,7 @@ async function fillStatsAndHistory(username : string) {
 		const totalLoss = document.getElementById('total-loss');
 		const winningPercentage = document.getElementById('winning-percentage');
 		const matchHistory = document.getElementById('match-history');
-		const res = await fetch('/matches', {
+		const res = await fetch('/api/matches', {
 			method: 'GET',
 			credentials: 'include'
 		})

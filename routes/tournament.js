@@ -50,9 +50,14 @@ async function tournamentManager(fastify) {
 	}
 
 	const getUserWinPercentage = async (userId) => {
+		let data = null
 		// Fetch all games played by the user
-		const res = await fetch(`https://localhost:6789/matches/${userId}`)
-		const data = await res.json()
+		try {
+			const res = await fetch(`http://localhost:6788/matches/${userId}`)
+			data = await res.json()
+		} catch (error) {
+			console.error('Error fetching matches:', error)
+		}
 		if (!data || !Array.isArray(data)) return -1
 		let winCount = 0
 		let lossCount = 0

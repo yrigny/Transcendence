@@ -3,7 +3,7 @@ import pump from 'pump'
 import path from 'node:path'
 import bcrypt from 'bcrypt';
 import { fileURLToPath } from 'node:url'
-import { ACTIVE_USERS } from '../server.js'
+import { ACTIVE_USERS } from '../server-external.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

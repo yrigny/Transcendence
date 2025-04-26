@@ -1,12 +1,14 @@
 import fs from 'node:fs'
+import dotenv from 'dotenv'
 import pump from 'pump'
 import path from 'node:path'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
 import { fileURLToPath } from 'node:url'
-import { ACTIVE_USERS } from '../server.js'
+import { ACTIVE_USERS } from '../server-external.js'
 
+dotenv.config()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const transporter = nodemailer.createTransport({
@@ -195,7 +197,6 @@ async function authRoutes(fastify) {
 		const user = jwt.verify(token, secretkey);
 		console.log('verified token for username:', user.name, user.id);
 		ACTIVE_USERS.delete(user.name)
-		console.log('Logging out user: ', user.username)
 		console.log('Active users: ')
 		ACTIVE_USERS.forEach((value, key) => {
 			console.log(key, value)

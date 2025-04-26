@@ -1,6 +1,6 @@
 import { GameRoom } from './GameRoom.js'
 
-async function gameRoutes(fastify) {
+async function gameManager(fastify) {
   const waitingPool = [] // { userId, socket }
   const gameRooms = new Map() // gameId -> GameRoom
   const userToGame = new Map() // userId -> gameId
@@ -119,4 +119,4 @@ async function gameRoutes(fastify) {
   })
 }
 
-export default gameRoutes
+export default gameManager

@@ -127,11 +127,11 @@ export class GameRoom {
 			gameData.game_start_time = this.gameStartTime
 			gameData.game_end_time = new Date().toISOString()
 			try {
-				const response = await fetch('https://localhost:6789/matches', {
+				const response = await fetch('http://localhost:6788/matches', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(gameData),
-					agent
+					// agent
 				});
 				const data = await response.json();
 				console.log("Game saved: ", data);

@@ -30,7 +30,7 @@ async function render(): Promise<void> {
 	const currentPath = window.location.pathname;
 	let isLoggedIn = false;
 	try {
-		const res = await fetch('https://localhost:6789/auth/status', 
+		const res = await fetch('/auth/status', 
 			{ method: 'GET', credentials: 'include' });
 		if (res.ok) {
 			const data = await res.json();
