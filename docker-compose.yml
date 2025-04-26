@@ -4,6 +4,7 @@ services:
     build: .
     ports:
       - "6789:6789"
+      - "6788:6788"
     env_file:
       - .env
     volumes:

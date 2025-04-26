@@ -17,7 +17,7 @@ RUN chmod +x generate.sh && ./generate.sh
 RUN npx tsc
 
 # Expose port (adjust if your app uses a different one)
-EXPOSE 6789
+EXPOSE 6789 6788
 
 # Run the app
 CMD ["npm", "run", "dev"]
