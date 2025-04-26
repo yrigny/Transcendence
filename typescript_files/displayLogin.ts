@@ -1,22 +1,45 @@
 
 function displayLogin(): void {
-	fetch('login.html')
-		.then(response => {
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
-			}
-			return response.text();
-		})
-		.then(html => {
-			const targetDiv = document.getElementById('login-inject');
-			if (targetDiv) {
-                targetDiv.innerHTML = html;
-            } else {
-                console.error("Element with id 'login-inject' not found.");
-            }
-			checkLogin();
-		})
-		.catch(err => console.error('Failed to fetch login.html:', err));
+	const targetDiv = document.getElementById('login-inject');
+	if (!targetDiv) {
+		console.error("Target div not found");
+		return;
+	}
+	targetDiv.innerHTML = `
+		<div class="bg-gray-800 p-12 rounded-lg shadow-lg w-96 text-center">
+			<h2 class="text-2xl font-semibold mb-4">Login</h2>
+			
+			<!-- Login form -->
+			<form id="login-form" class="flex flex-col">
+				<input type="text" id="username-input" name="username" placeholder="Username" required
+					class="w-full p-3 mb-3 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+				<input type="password" id="password-input" name="password" placeholder="Password" required
+					class="w-full p-3 mb-4 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+				<button id="submit-login-form" type="submit"
+					class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 rounded transition duration-200">
+					Login
+				</button>
+			</form>
+
+			<!-- 2FA form -->
+			<form id="2fa-form" class="hidden flex flex-col mt-4">
+				<p class="text-white mb-2">Enter the 6-digit code sent to your email</p>
+				<input type="text" id="code-input" maxlength="6" placeholder="2FA Code" required
+					class="w-full p-3 mb-3 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+				<button id="verify-2fa-button"
+					class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 rounded transition duration-200">
+					Verify
+				</button>
+			</form>
+
+			<div id="error-message" class="text-red-400 mt-3"></div>
+
+			<p class="mt-4 text-sm">
+				Don't have an account? <a href="register" class="text-blue-300 hover:underline">Register here</a>
+			</p>
+		</div>
+	`;
+	checkLogin();
 }
 
 async function checkLogin(): Promise<void> {

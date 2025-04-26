@@ -51,7 +51,7 @@ async function tournamentManager(fastify) {
 
 	const getUserWinPercentage = async (userId) => {
 		// Fetch all games played by the user
-		const res = await fetch(`http://localhost:6789/matches/${userId}`)
+		const res = await fetch(`https://localhost:6789/matches/${userId}`)
 		const data = await res.json()
 		if (!data || !Array.isArray(data)) return -1
 		let winCount = 0
@@ -144,7 +144,6 @@ async function tournamentManager(fastify) {
 	}
 
 	const startFinal = async (players) => {
-		console.log('Connection pool length:', connectionsPool.length)
 		tournamentState.final.gaming = true
 		console.log('Starting final with players:', players[0].userId, players[1].userId)
 		broadcastToAllConnections({ type: 'tournament-game-start', player1: players[0].userId, player2: players[1].userId })
@@ -211,9 +210,14 @@ async function tournamentManager(fastify) {
 			}
 			if (data.type === 'tournament-join-pool') {
 				console.log('User joining tournament pool:', userId)
-				let poolLength = tournamentState.playersName.length
-				console.log('Connections pool length:', connectionsPool.length)
+				// If user is not logged in, send error message and close connection
+				if (!userId) {
+					conn.send(JSON.stringify({ type: 'error', message: 'You must be logged in to enter the tournament' }))
+					conn.close()
+					return
+				}
 				// Add user to playersPool if not already present and pool is not full
+				let poolLength = tournamentState.playersName.length
 				if (!tournamentState.playersName.find(p => p === userId) && poolLength < 4) {
 					playersPool.push({ userId, socket: conn })
 					tournamentState.playersName[poolLength] = userId

@@ -1,20 +1,40 @@
-function displayRegister(): void {
-	fetch('register.html')
-		.then(response => {
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
-			}
-			return response.text();
-		})
-		.then(html => {
-			const targetDiv = document.getElementById('register-inject');
-			if (targetDiv) {
-				targetDiv.innerHTML = html;
-				checkInputFields();
-				registerHandler();
-			}
-		})
-		.catch(err => console.error('Failed to fetch register.html:', err));
+
+function displayRegister() {
+	const targetDiv = document.getElementById('register-inject');
+	if (!targetDiv) {
+		console.error('Target div not found');
+		return;
+	}
+	targetDiv.innerHTML = `
+		<div class="bg-gray-800 p-12 rounded-lg shadow-lg w-full max-w-md text-center">
+
+			<h2 class="text-2xl font-semibold mb-4">Register</h2>
+			<form class="flex flex-col space-y-5" id="register-form" enctype="multipart/form-data">
+				<input id="username" type="text" name="username" placeholder="Username" required 
+						class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+				<input id="email" type="email" name="email" placeholder="Email" required class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+				<input id="password" type="password" name="password" placeholder="Password" required 
+						class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+				<input id="confirm-password" type="password" name="confirmPassword" placeholder="Confirm Password" required 
+						class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+				<label for="avatar" class="text-white text-base text-sm">Upload Your Avatar</label>
+				<input id="avatar" type="file" name="avatar" accept="image/*"
+						class="w-full p-2 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm">
+				<button id="submit-register-form" type="submit"
+						class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 rounded transition duration-200">
+					Register
+				</button>
+			</form>
+
+			<div id="error-message" class="text-red-400 text-sm mt-2"></div>
+
+			<p class="mt-3 text-base">Already have an account? 
+				<a href="login" class="text-blue-300 hover:underline">Login here</a>
+			</p>
+		</div>
+	`;
+	checkInputFields();
+	registerHandler();
 }
 
 function checkInputFields(): void {

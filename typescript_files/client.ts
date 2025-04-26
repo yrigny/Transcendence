@@ -23,10 +23,29 @@ function clearAllInjects(): void {
 	});
 }
 
-function render(): void {
+async function render(): Promise<void> {
 	clearAllInjects();
 
-	switch (window.location.pathname) {
+	const protectedRoutes = ['/game', '/dashboard', '/friends'];
+	const currentPath = window.location.pathname;
+	let isLoggedIn = false;
+	try {
+		const res = await fetch('https://localhost:6789/auth/status', 
+			{ method: 'GET', credentials: 'include' });
+		if (res.ok) {
+			const data = await res.json();
+			isLoggedIn = data.loggedIn === true;
+		}
+	} catch (error) {
+		console.error('Failed to fetch auth status:', error);
+	}
+	// Redirect if trying to access protected route without login
+	if (protectedRoutes.indexOf(currentPath) !== -1 && !isLoggedIn) {
+		window.history.pushState({}, '', '/login');
+		displayLogin();
+		return;
+	}
+	switch (currentPath) {
 		case "/":
 		case "/home":
 			displayHome();

@@ -2,10 +2,10 @@ import fs from 'node:fs'
 import pump from 'pump'
 import path from 'node:path'
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
 import { fileURLToPath } from 'node:url'
 import { ACTIVE_USERS } from '../server.js'
-import jwt from 'jsonwebtoken'; //token signing, verification and decoding
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -100,7 +100,7 @@ async function authRoutes(fastify) {
 		const expiresAt = Date.now() + 5 * 60 * 1000 // 5 minutes
 		TWO_FA_CODES.set(username, { code, expiresAt, user })
 		await transporter.sendMail({
-			from: 'realyifandiao@gmail.com',
+			from: process.env.AUTH_MAIL,
 			to: user.email,
 			subject: 'Your 2FA Code - Pong Game',
 			text: `Your 2FA code is ${code}. It will expire in 5 minutes.`
@@ -196,6 +196,10 @@ async function authRoutes(fastify) {
 		console.log('verified token for username:', user.name, user.id);
 		ACTIVE_USERS.delete(user.name)
 		console.log('Logging out user: ', user.username)
+		console.log('Active users: ')
+		ACTIVE_USERS.forEach((value, key) => {
+			console.log(key, value)
+		})
 		reply.clearCookie('token', { path: '/' })
 		return reply.redirect('/home')
 	})

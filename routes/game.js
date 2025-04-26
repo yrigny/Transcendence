@@ -4,7 +4,8 @@ async function gameRoutes(fastify) {
   const waitingPool = [] // { userId, socket }
   const gameRooms = new Map() // gameId -> GameRoom
   const userToGame = new Map() // userId -> gameId
-
+  const danglingSockets = [] // sockets that are not in any game
+  
   fastify.get('/ws/game', { websocket: true }, (conn, req) => {
     let userId = ''
 
@@ -13,14 +14,18 @@ async function gameRoutes(fastify) {
       if (data.type === 'join-double') {
         userId = data.userId
         console.log('User joined:', userId)
-        if (!waitingPool.find(p => p.userId === userId)) {
+        // If the user is already in the waiting pool or a game room, close the connection
+        if (!waitingPool.find(p => p.userId === userId) && !userToGame.has(userId)) {
           waitingPool.push({ userId, socket: conn })
           console.log(userId, ' added to waiting pool')
         }
         else {
+          danglingSockets.push(conn)
+          conn.send(JSON.stringify({ type: 'error', message: 'User already in a game' }))
           conn.close()
           console.log('Closing existing connection for user:', userId)
         }
+        // Check if there are two players in the waiting pool, if so, create a game room
         if (waitingPool.length > 1) {
           const player1 = waitingPool.shift()
           const player2 = waitingPool.shift()
@@ -39,13 +44,22 @@ async function gameRoutes(fastify) {
       if (data.type === 'join-single') {
         userId = data.userId
         console.log('User joined:', userId)
-        const gameRoom = new GameRoom(
-          [{ userId, socket: conn }]
-        )
-        gameRooms.set(gameRoom.id, gameRoom)
-        userToGame.set(userId, gameRoom.id)
-        console.log('gameRooms size: ', gameRooms.size)
-        console.log('userToGame size: ', userToGame.size)
+        // If the user is already in the waiting pool or a game room, close the connection
+        if (!waitingPool.find(p => p.userId === userId) && !userToGame.has(userId)) {
+          console.log(userId, ' started a local game')
+          const gameRoom = new GameRoom(
+            [{ userId, socket: conn }]
+          )
+          gameRooms.set(gameRoom.id, gameRoom)
+          userToGame.set(userId, gameRoom.id)
+          console.log('gameRooms size: ', gameRooms.size)
+          console.log('userToGame size: ', userToGame.size)
+        } else {
+          danglingSockets.push(conn)
+          conn.send(JSON.stringify({ type: 'error', message: 'User already in a game' }))
+          conn.close();
+          console.log('Closing existing connection for user:', userId);
+        }
       }
       if (data.type === 'input') {
         console.log('Input received:', data)
@@ -80,11 +94,18 @@ async function gameRoutes(fastify) {
     })
 
     conn.on('close', () => {
-      console.log('Closing connection for user:', userId)
+      // If dangling socket, remove it from danglingSockets, skip further processing
+      if (danglingSockets.includes(conn)) {
+        const index = danglingSockets.indexOf(conn)
+        if (index !== -1) {
+          danglingSockets.splice(index, 1)
+          console.log('Dangling socket removed:')
+        }
+        return
+      }
       const gameId = userToGame.get(userId)
       if (gameId) {
         const gameRoom = gameRooms.get(gameId)
-        // remove both userId of the gameRoom from userToGame
         gameRoom.players.forEach(player => {
           userToGame.delete(player.userId)
         })
@@ -94,8 +115,6 @@ async function gameRoutes(fastify) {
         if (index !== -1)
           waitingPool.splice(index, 1)
       }
-      console.log('gameRooms size: ', gameRooms.size)
-      console.log('userToGame size: ', userToGame.size)
     })
   })
 }

@@ -10,7 +10,6 @@ import gameRoutes from './routes/game.js'
 import multipart from '@fastify/multipart'
 import userRoutes from './routes/user.js'
 import formbody from '@fastify/formbody'
-//import fastifyJwt from '@fastify/jwt'
 import fastifyCookie from '@fastify/cookie'
 import authRoutes from './routes/auth.js'
 import matchesRoutes from './routes/matches.js'
@@ -39,8 +38,6 @@ await fastify.register(multipart)
 fastify.register(userRoutes)
 await fastify.register(formbody)
 await fastify.register(fastifyCookie)
-//await fastify.register(fastifyJwt, {secret: 'supersecret', 
-//  cookie: { cookieName: 'token', signed: false }})
 fastify.register(authRoutes)
 fastify.register(matchesRoutes)
 fastify.register(tournamentManager)
