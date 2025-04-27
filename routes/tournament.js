@@ -7,11 +7,12 @@ async function tournamentManager(fastify) {
 	let currentGame = null
 	const tournamentState = {
 		playersName: [],
+		playersAlias: [],
 		semifinals: {
-			match1: { players: [], readyStatus: [false, false], gaming: false, winner: null },
-			match2: { players: [], readyStatus: [false, false], gaming: false, winner: null }
+			match1: { players: [], alias: [], readyStatus: [false, false], gaming: false, winner: null },
+			match2: { players: [], alias: [], readyStatus: [false, false], gaming: false, winner: null }
 		},
-		final: { players: [], readyStatus: [false, false], gaming: false, winner: null },
+		final: { players: [], alias: [], readyStatus: [false, false], gaming: false, winner: null },
 	};
 
 	const broadcastToAllConnections = (msg) => {
@@ -46,6 +47,11 @@ async function tournamentManager(fastify) {
 		tournamentState.semifinals.match1.players[1] = players[1].userId
 		tournamentState.semifinals.match2.players[0] = players[2].userId
 		tournamentState.semifinals.match2.players[1] = players[3].userId
+		// Assign aliases
+		tournamentState.semifinals.match1.alias[0] = tournamentState.playersAlias[tournamentState.playersName.indexOf(players[0].userId)]
+		tournamentState.semifinals.match1.alias[1] = tournamentState.playersAlias[tournamentState.playersName.indexOf(players[1].userId)]
+		tournamentState.semifinals.match2.alias[0] = tournamentState.playersAlias[tournamentState.playersName.indexOf(players[2].userId)]
+		tournamentState.semifinals.match2.alias[1] = tournamentState.playersAlias[tournamentState.playersName.indexOf(players[3].userId)]
 		console.log('Tournament state after matchmaking:', tournamentState.semifinals.match1.players, tournamentState.semifinals.match2.players)
 	}
 
@@ -108,10 +114,10 @@ async function tournamentManager(fastify) {
 	}
 
 	const startSemifinal = async (matchIndex, players) => {
-		if (matchIndex === 0) tournamentState.semifinals.match1.gaming = true
-		else tournamentState.semifinals.match2.gaming = true
+		const match = matchIndex === 0 ? tournamentState.semifinals.match1 : tournamentState.semifinals.match2
+		match.gaming = true
 		console.log(`Starting semifinal ${matchIndex + 1} with players:`, players[0].userId, players[1].userId)
-		broadcastToAllConnections({ type: 'tournament-game-start', player1: players[0].userId, player2: players[1].userId})
+		broadcastToAllConnections({ type: 'tournament-game-start', players: match.players, alias: match.alias })
 
 		return new Promise((resolve) => {
 			currentGame = new GameRoom(players, true)
@@ -119,49 +125,36 @@ async function tournamentManager(fastify) {
 				connectionsPool.forEach(client => {
 					if (client.socket.readyState === client.socket.OPEN) {
 						client.socket.send(JSON.stringify({ 
-							type: "output",
-							ball: this.state.ball,
-							paddles: this.state.paddles,
-							scores: this.state.scores,
-							gaming: this.state.gaming,
+							type: "output", ball: this.state.ball, paddles: this.state.paddles, scores: this.state.scores
 						}))
 					}
 				})
 			}
 			currentGame.getGameResult = async function() {
-				const winner = this.state.scores.left > this.state.scores.right ? 
-				players[0].userId : players[1].userId;
+				const winner = this.state.scores.left > this.state.scores.right ? players[0].userId : players[1].userId;
 				// Update tournament state with the winner and scores
-				if (matchIndex === 0) {
-					tournamentState.semifinals.match1.winner = winner;
-					tournamentState.semifinals.match1.gaming = false;
-					tournamentState.final.players[0] = winner;
-				} else {
-					tournamentState.semifinals.match2.winner = winner;
-					tournamentState.semifinals.match2.gaming = false;
-					tournamentState.final.players[1] = winner;
-				}
+				match.winner = winner;
+				match.gaming = false;
+				tournamentState.final.players[matchIndex] = winner;
+				tournamentState.final.alias[matchIndex] = tournamentState.playersAlias[tournamentState.playersName.indexOf(winner)]
 				console.log(`Semifinal ${matchIndex + 1} ended. Winner: ${winner}`)
-				broadcastToAllConnections({ type: 'tournament-game-end', semifinals: tournamentState.semifinals, final: tournamentState.final })
+				broadcastToAllConnections({ type: 'tournament-game-end', matchIndex, semifinals: tournamentState.semifinals, final: tournamentState.final })
 				resolve()
 			}
 		})
 	}
 
 	const startFinal = async (players) => {
-		tournamentState.final.gaming = true
+		const final = tournamentState.final
+		final.gaming = true
 		console.log('Starting final with players:', players[0].userId, players[1].userId)
-		broadcastToAllConnections({ type: 'tournament-game-start', player1: players[0].userId, player2: players[1].userId })
+		broadcastToAllConnections({ type: 'tournament-game-start', players: final.players, alias: final.alias })
 		currentGame = new GameRoom(players, true)
 		currentGame.broadcastState = function() {
 			connectionsPool.forEach(client => {
 				if (client.socket.readyState === client.socket.OPEN) {
 					client.socket.send(JSON.stringify({ 
-						type: "output",
-						ball: this.state.ball,
-						paddles: this.state.paddles,
-						scores: this.state.scores,
-						gaming: this.state.gaming,
+						type: "output", ball: this.state.ball, paddles: this.state.paddles, scores: this.state.scores
 					}))
 				}
 			})
@@ -172,7 +165,7 @@ async function tournamentManager(fastify) {
 			tournamentState.final.winner = winner;
 			tournamentState.final.gaming = false;
 			console.log('Final ended. Winner:', winner)
-			broadcastToAllConnections({ type: 'tournament-game-end', semifinals: tournamentState.semifinals, final: tournamentState.final })		
+			broadcastToAllConnections({ type: 'tournament-game-end', matchIndex: 2, semifinals: tournamentState.semifinals, final: tournamentState.final })		
 			// Reset tournament after some delay
 			setTimeout(() => resetTournament(), 10000);
 		}
@@ -181,11 +174,12 @@ async function tournamentManager(fastify) {
 	const resetTournament = () => {
 		console.log('Resetting tournament state...')
 		tournamentState.playersName = []
+		tournamentState.playersAlias = []
     	tournamentState.semifinals = {
-			match1: { players: [], readyStatus: [false, false], gaming: false, winner: null },
-			match2: { players: [], readyStatus: [false, false], gaming: false, winner: null }
+			match1: { players: [], alias: [], readyStatus: [false, false], gaming: false, winner: null },
+			match2: { players: [], alias: [], readyStatus: [false, false], gaming: false, winner: null }
 		}
-		tournamentState.final = { players: [], readyStatus: [false, false], gaming: false, winner: null }
+		tournamentState.final = { players: [], alias: [], readyStatus: [false, false], gaming: false, winner: null }
 		while(playersPool.length) playersPool.pop();
 		// Remove and close all connections
 		connectionsPool.forEach(client => {
@@ -197,6 +191,7 @@ async function tournamentManager(fastify) {
 
 	fastify.get('/ws/tournament', { websocket: true }, (conn, req) => {
 		let userId = ''
+		let alias = ''
 
 		conn.on('message', async (msg) => {
 			const data = JSON.parse(msg)
@@ -204,20 +199,26 @@ async function tournamentManager(fastify) {
 			if (data.type === 'enter-tournament-page') {
 				userId = data.userId
 				console.log('User entered tournament page:', userId)
+				// If logged in user is already in the connectionsPool, close socket
+				if (userId != undefined && connectionsPool.find(c => c.userId === userId)) {
+					conn.close()
+					return
+				}
 				connectionsPool.push({ userId, socket: conn })
 				let msg = {
 					type: 'tournament-fill-page',
 					playersPool: tournamentState.playersName,
+					playersAlias: tournamentState.playersAlias,
 					semifinals: tournamentState.semifinals,
 					final: tournamentState.final
 				}
 				conn.send(JSON.stringify(msg))
 			}
 			if (data.type === 'tournament-join-pool') {
-				console.log('User joining tournament pool:', userId)
+				alias = data.alias
 				// If user is not logged in, send error message and close connection
-				if (!userId) {
-					conn.send(JSON.stringify({ type: 'error', message: 'You must be logged in to enter the tournament' }))
+				if (!userId || !alias) {
+					conn.send(JSON.stringify({ type: 'error', message: 'You must log in and set an alias' }))
 					conn.close()
 					return
 				}
@@ -226,10 +227,12 @@ async function tournamentManager(fastify) {
 				if (!tournamentState.playersName.find(p => p === userId) && poolLength < 4) {
 					playersPool.push({ userId, socket: conn })
 					tournamentState.playersName[poolLength] = userId
-					console.log(userId, ' added to players pool')
+					tournamentState.playersAlias[poolLength] = alias
+					console.log('User joining tournament pool:', userId, 'with alias:', alias)
 					let msg = {
 						type: 'tournament-update-pool',
-						playersPool: tournamentState.playersName
+						playersPool: tournamentState.playersName,
+						playersAlias: tournamentState.playersAlias,
 					}
 					broadcastToAllConnections(msg)
 				}
@@ -244,7 +247,7 @@ async function tournamentManager(fastify) {
 					let msg = {
 						type: 'tournament-update-map',
 						semifinals: tournamentState.semifinals,
-						final: tournamentState.final
+						final: tournamentState.final,
 					}
 					broadcastToAllConnections(msg)
 				}
