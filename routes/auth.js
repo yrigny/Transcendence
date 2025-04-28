@@ -19,6 +19,10 @@ const transporter = nodemailer.createTransport({
 	}
 })
 
+
+const isAlphaNumeric = str => /^[a-z0-9]*$/gi.test(str);
+const isValidEmail = str => /^[^\s@]+@[^\s@]+.[^\s@]+$/gi.test(str);
+
 const secretkey = process.env.AUTH_KEY
 
 function createSessionToken(user)
@@ -64,10 +68,10 @@ async function authRoutes(fastify) {
 		}
 		const { username, email, password, confirmPassword } = fields
 		// validate the input
-		if (!username || !password) {
+		if (!username || !isAlphaNumeric(username) || !password) {
 			return res.status(400).send({ error: 'Username and password are required' })
 		}
-		if (!email || !email.includes('@')) {
+		if (!email || !email.includes('@') || !isValidEmail(email)) {
 			return res.status(400).send({ error: 'Valid email is required' })
 		}
 		if (password !== confirmPassword) {
@@ -97,6 +101,8 @@ async function authRoutes(fastify) {
 
 	fastify.post('/auth/2fa/send-code', async (req, res) => {
 		const { username } = req.body
+		if (!isAlphaNumeric(username))
+			return res.status(400).send({ error: 'bad request' })
 		const user = fastify.sqlite.prepare('SELECT * FROM users WHERE name = ?').get(username)
 		const code = Math.floor(100000 + Math.random() * 900000).toString()
 		const expiresAt = Date.now() + 5 * 60 * 1000 // 5 minutes
@@ -112,6 +118,8 @@ async function authRoutes(fastify) {
 
 	fastify.post('/auth/2fa/enable', async (req, res) => {
 		const { username } = req.body
+		if (!isAlphaNumeric(username))
+			return res.status(400).send({ error: 'bad request' })
 		fastify.sqlite.prepare(
 			'UPDATE users SET two_fa_enabled = 1 WHERE name = ?'
 		).run(username)
@@ -120,6 +128,8 @@ async function authRoutes(fastify) {
 
 	fastify.post('/auth/2fa/disable', async (req, res) => {
 		const { username } = req.body
+		if (!isAlphaNumeric(username))
+			return res.status(400).send({ error: 'bad request' })
 		fastify.sqlite.prepare(
 			'UPDATE users SET two_fa_enabled = 0 WHERE name = ?'
 		).run(username)
@@ -155,7 +165,7 @@ async function authRoutes(fastify) {
 		console.log('Login request received:', req.body)
 		const { username, password } = req.body
 		// validate the input
-		if (!username || !password) {
+		if (!username || !password || !isAlphaNumeric(username)) {
 			return res.status(400).send({ error: 'Username and password are required' })
 		}
 		// check user exists and password is correct

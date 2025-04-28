@@ -201,6 +201,7 @@ async function tournamentManager(fastify) {
 				console.log('User entered tournament page:', userId)
 				// If logged in user is already in the connectionsPool, close socket
 				if (userId != undefined && connectionsPool.find(c => c.userId === userId)) {
+					console.log(`${userId}:userid already connected`);
 					conn.close()
 					return
 				}

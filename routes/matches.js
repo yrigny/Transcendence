@@ -1,3 +1,7 @@
+
+const isAlphaNumeric = str => /^[a-z0-9]*$/gi.test(str);
+
+
 async function matchesRoutes(fastify, options) {
 	// Get all match records
 	fastify.get('/matches', async (request, reply) => {
@@ -25,6 +29,8 @@ async function matchesRoutes(fastify, options) {
 	// Get match records for a specific user
 	fastify.get('/matches/:user', async (request, reply) => {
 		const { user } = request.params;
+		if (!isAlphaNumeric(user))
+			reply.status(400).send({ error: 'bad request' });
 		try {
 			const matches = fastify.sqlite.prepare(`
 				SELECT 
@@ -53,6 +59,12 @@ async function matchesRoutes(fastify, options) {
 		const { player1_id, player2_id, player1_score, player2_score, game_start_time, game_end_time } = request.body;
 		const formattedGameStartTime = new Date(game_start_time).toISOString().replace("T", " ").replace("Z", "");
 		const formattedGameEndTime = new Date(game_end_time).toISOString().replace("T", " ").replace("Z", "");
+		// Create an array of the values to check
+		const valuesToCheck = [player1_id, player2_id, player1_score, player2_score];
+
+		// Check if at least one value is not alphanumeric
+		if (valuesToCheck.some(value => !isAlphaNumeric(value)))
+			return reply.status(400).send({ error: 'bad request' });
 		try {
 		// Insert new match into the database
 			fastify.sqlite.prepare(`
