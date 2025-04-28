@@ -203,7 +203,7 @@ async function tournamentManager(fastify) {
 				console.log('User entered tournament page:', userId)
 				// If logged in user is already in the connectionsPool, close socket
 				if (userId != undefined && connectionsPool.find(c => c.userId === userId)) {
-					console.log(`${userId}:userid already connected`);
+					console.log(`${userId} already connected`);
 					conn.close()
 					return
 				}
@@ -219,11 +219,14 @@ async function tournamentManager(fastify) {
 			}
 			if (data.type === 'tournament-join-pool') {
 				alias = data.alias
-				if (!isAlphaNumeric(alias))
-					reply.status(400).send({ error: 'bad request' });
 				// If user is not logged in, send error message and close connection
 				if (!userId || !alias ) {
 					conn.send(JSON.stringify({ type: 'error', message: 'You must log in and set an alias' }))
+					conn.close()
+					return
+				}
+				if (!isAlphaNumeric(alias)) {
+					conn.send(JSON.stringify({ type: 'error', message: 'Bad alias' }))
 					conn.close()
 					return
 				}
