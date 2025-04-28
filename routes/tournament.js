@@ -1,6 +1,8 @@
 
 import { GameRoom } from './GameRoom.js'
 
+const isAlphaNumeric = str => /^[a-z0-9]*$/gi.test(str);
+
 async function tournamentManager(fastify) {
 	const connectionsPool = [] // { userId, socket }
 	const playersPool = [] // { userId, socket }
@@ -217,8 +219,10 @@ async function tournamentManager(fastify) {
 			}
 			if (data.type === 'tournament-join-pool') {
 				alias = data.alias
+				if (!isAlphaNumeric(alias))
+					reply.status(400).send({ error: 'bad request' });
 				// If user is not logged in, send error message and close connection
-				if (!userId || !alias) {
+				if (!userId || !alias ) {
 					conn.send(JSON.stringify({ type: 'error', message: 'You must log in and set an alias' }))
 					conn.close()
 					return
