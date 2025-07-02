@@ -1,0 +1,42 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Decode and save private key
+      run: |
+        echo "${{ secrets.EC2_KEY }}" | base64 -d > key.pem
+        chmod 600 key.pem
+
+    - name: Copy files to EC2
+      run: |
+        scp -i key.pem -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app
+
+    - name: SSH and deploy
+      run: |
+        ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          cd ~/app
+          
+          # Recreate .env file on EC2
+          echo "AUTH_HOST=${{ secrets.AUTH_HOST }}" > .env
+          echo "AUTH_PORT=${{ secrets.AUTH_PORT }}" >> .env
+          echo "AUTH_MAIL=${{ secrets.AUTH_MAIL }}" >> .env
+          echo "AUTH_PASS=${{ secrets.AUTH_PASS }}" >> .env
+          echo "AUTH_KEY=${{ secrets.AUTH_KEY }}" >> .env
+          echo "EXTERNAL_PORT=${{ secrets.EXTERNAL_PORT }}" >> .env
+          echo "INTERNAL_PORT=${{ secrets.INTERNAL_PORT }}" >> .env
+          echo "NODE_ENV=production" >> .env
+          
+          docker-compose down
+          docker-compose up -d --build
+        EOF
