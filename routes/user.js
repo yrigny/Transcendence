@@ -3,7 +3,7 @@ import pump from 'pump'
 import path from 'node:path'
 import bcrypt from 'bcrypt';
 import { fileURLToPath } from 'node:url'
-import { ACTIVE_USERS } from '../server-external.js'
+import { ACTIVE_USERS } from '../server.js'
 
 const isAlphaNumeric = str => /^[a-z0-9]*$/gi.test(str);
 

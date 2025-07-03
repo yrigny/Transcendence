@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
 import { fileURLToPath } from 'node:url'
-import { ACTIVE_USERS } from '../server-external.js'
+import { ACTIVE_USERS } from '../server.js'
 
 dotenv.config()
 const __filename = fileURLToPath(import.meta.url)
