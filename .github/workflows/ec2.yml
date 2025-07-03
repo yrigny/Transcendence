@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main
+      - deploy-cleanup
 
 jobs:
   deploy:
@@ -28,13 +28,9 @@ jobs:
           cd ~/app
           
           # Recreate .env file on EC2
-          echo "AUTH_HOST=${{ secrets.AUTH_HOST }}" > .env
-          echo "AUTH_PORT=${{ secrets.AUTH_PORT }}" >> .env
           echo "AUTH_MAIL=${{ secrets.AUTH_MAIL }}" >> .env
           echo "AUTH_PASS=${{ secrets.AUTH_PASS }}" >> .env
           echo "AUTH_KEY=${{ secrets.AUTH_KEY }}" >> .env
-          echo "EXTERNAL_PORT=${{ secrets.EXTERNAL_PORT }}" >> .env
-          echo "INTERNAL_PORT=${{ secrets.INTERNAL_PORT }}" >> .env
           echo "NODE_ENV=production" >> .env
           
           docker-compose down
