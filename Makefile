@@ -10,6 +10,7 @@ down:
 	docker-compose down
 
 clean:
+	rm public/*
 	docker-compose down -v --rmi all --remove-orphans
 
 logs:

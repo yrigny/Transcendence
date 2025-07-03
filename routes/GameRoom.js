@@ -1,19 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { readFileSync } from 'fs';
-import https from 'https';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import fetch from 'node-fetch';//need this fetch version to allow agent use
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const trustedCert = readFileSync(join(__dirname, '../certs/server.cert'));
-//use the agent to tell fetch the certificate is trusted
-const agent = new https.Agent({
-  ca: trustedCert,
-  rejectUnauthorized: true,
-});
+import fetch from 'node-fetch';
 
 export class GameRoom {
 	constructor(players, isTournamentGame = false) {
@@ -127,7 +113,7 @@ export class GameRoom {
 			gameData.game_start_time = this.gameStartTime
 			gameData.game_end_time = new Date().toISOString()
 			try {
-				const response = await fetch('http://localhost:6788/matches', {
+				const response = await fetch('http://localhost/matches', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(gameData),

@@ -61,7 +61,7 @@ async function tournamentManager(fastify) {
 		let data = null
 		// Fetch all games played by the user
 		try {
-			const res = await fetch(`http://localhost:6788/matches/${userId}`)
+			const res = await fetch(`http://localhost/matches/${userId}`)
 			data = await res.json()
 		} catch (error) {
 			console.error('Error fetching matches:', error)

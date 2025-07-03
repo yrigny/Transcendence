@@ -1,5 +1,5 @@
 {
-  "name": "myproject",
+  "name": "transcendence",
   "version": "1.0.0",
   "description": "This project was bootstrapped with Fastify-CLI.",
   "type": "module",
@@ -8,15 +8,11 @@
     "test": "test"
   },
   "scripts": {
-    "start": "node server-external.js & node server-internal.js",
-    "start:external": "node server-external.js",
-    "start:internal": "node server-internal.js",
-    "dev": "nodemon server-external.js & nodemon server-internal.js",
-    "dev:external": "nodemon server-external.js",
-    "dev:internal": "nodemon server-internal.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Yifan Rigny",
   "license": "ISC",
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
