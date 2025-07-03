@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Transcendence</title>
+	<script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+	<link rel="icon" href="/favicon.png" type="image/png">
+</head>
+<body class="bg-gray-100 h-min-screen">
+	<div class="flex flex-col justify-center items-center h-screen bg-gradient-to-r from-indigo-700 to-purple-600 text-white">
+		<header class="absolute inset-x-0 top-0 z-50">
+			<nav id="nav-lg" class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
+				<div class="flex lg:flex-1">
+					<a href="home" data-link class="-m-1.5 p-1.5">
+						<span class="sr-only">Home</span>
+						<img class="h-10 w-auto" src="https://ponggame.io/images/buttonhome-sheet0.png" alt="Logo">
+					</a>
+				</div>
+				<div class="hidden lg:flex lg:gap-x-12">
+					<a href="game" data-link class="text-sm/6 font-semibold text-white">Game</a>
+					<a href="tournament" data-link class="text-sm/6 font-semibold text-white">Tournament</a>
+					<a href="dashboard" data-link class="text-sm/6 font-semibold text-white">Dashboard</a>
+					<a href="friends" data-link class="text-sm/6 font-semibold text-white">Friends</a>
+				</div>
+				<div id="user-control" class="hidden lg:flex lg:flex-1 lg:justify-end">
+					<div id="auth-buttons">
+						<a href="login" data-link class="text-sm/6 p-1.5 font-semibold text-white">Log in <span aria-hidden="true">&rarr;</span></a>
+						<a href="register" data-link class="text-sm/6 p-1.5 font-semibold text-white">Register <span aria-hidden="true">&rarr;</span></a>
+					</div>
+					<div id="logout-section">
+						<a href="dashboard" id="logged-in-user" class="text-sm/6 p-1.5 font-semibold text-gray-300"></a>
+						<a href="auth/logout" id="logout-btn"
+						class="text-sm/6 p-1.5 font-semibold text-white">Log out <span aria-hidden="true">&rarr;</span></a>
+					</div>
+				</div>
+			</nav>
+		</header>
+	
+		<div id="content" class="relative isolate px-6 pt-14 lg:px-8">
+			<div id="home-inject"></div>
+			<div id="game-inject"></div>
+			<div id="tournament-inject"></div>
+			<div id="dashboard-inject"></div>
+			<div id="friends-inject"></div>
+			<div id="login-inject"></div>
+			<div id="register-inject"></div>
+		</div>
+	</div>
+	<footer class="bg-white border-t border-gray-200 mt-auto">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="py-4 text-center text-sm text-gray-500">
+			&copy; 2025 Pong Game. All rights reserved.
+			</div>
+		</div>
+	</footer>
+	<script type="module" src="client.js"></script>
+</body>
+</html>
