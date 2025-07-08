@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 // Database connection plugin
 async function dbConnector(fastify) {
-  const db = new Database(path.join(__dirname, '../volume/database/database.sqlite'));
+  const db = new Database(path.join(__dirname, '../../volume/database/database.sqlite'));
   console.log('Database connected');
 
   // Create the 'users' table if it doesn't exist

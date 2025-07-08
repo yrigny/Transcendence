@@ -24,8 +24,8 @@ const fastify = Fastify({
 export const ACTIVE_USERS = new Map()
 
 fastify.register(routes)
-fastify.register(FastifyStatic, { root: path.join(__dirname, 'public'), prefix: '/' })
-fastify.register(FastifyStatic, { root: path.join(__dirname, 'volume/uploads'), prefix: '/uploads/', decorateReply: false })
+fastify.register(FastifyStatic, { root: path.join(__dirname, '../public'), prefix: '/' })
+fastify.register(FastifyStatic, { root: path.join(__dirname, '../volume/uploads'), prefix: '/uploads/', decorateReply: false })
 fastify.register(dbConnector)
 await fastify.register(fastifyWebsocket)
 fastify.register(gameRoutes)
