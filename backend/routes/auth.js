@@ -222,13 +222,25 @@ async function authRoutes(fastify) {
 			if (!token) {
 				return reply.status(400).send({ loggedIn: false })
 			}
-			//const user = await request.jwtVerify()
-			const user = jwt.verify(token, secretkey);
-			console.log('verified token for username:', user.name, user.id);
-			if (ACTIVE_USERS.has(user.name))
-				reply.status(200).send({ loggedIn: true, username: user.name })
-			else
+
+			try {
+				const user = jwt.verify(token, secretkey);
+				console.log('verified token for username:', user.name, user.id);
+
+				// Check if user is in active users and token is still valid
+				if (ACTIVE_USERS.has(user.name))
+					reply.status(200).send({ loggedIn: true, username: user.name })
+				else
+					reply.status(401).send({ loggedIn: false })
+			} catch (jwtError) {
+				// Token is expired or invalid, remove from active users if present
+				const expiredPayload = jwt.decode(token) // Decode without verification to get username
+				if (expiredPayload && expiredPayload.name) {
+					ACTIVE_USERS.delete(expiredPayload.name)
+					console.log(`Removed expired user ${expiredPayload.name} from active users`)
+				}
 				reply.status(401).send({ loggedIn: false })
+			}
 		} catch (error) {
 			reply.send(error)
 		}
