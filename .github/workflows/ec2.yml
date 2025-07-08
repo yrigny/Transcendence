@@ -20,7 +20,9 @@ jobs:
 
     - name: Copy files to EC2
       run: |
-        scp -i key.pem -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app
+        rsync -av --exclude='.git' \
+        -e "-i key.pem -o StrictHostKeyChecking=no" \
+        -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app
 
     - name: SSH and deploy
       run: |
