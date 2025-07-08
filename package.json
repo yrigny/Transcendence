@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "This project was bootstrapped with Fastify-CLI.",
   "type": "module",
-  "main": "server.js",
+  "main": "backend/server.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
   },
   "keywords": [],
   "author": "Yifan Rigny",
