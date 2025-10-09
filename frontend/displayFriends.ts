@@ -7,8 +7,7 @@ function displayFriends() {
 		return;
 	}
 	targetDiv.innerHTML = `
-		<div class="p-10">
-			<h2 class="text-2xl font-bold text-white mb-6">My Friends</h2>
+		<div class="flex min-h-screen flex-col items-center justify-center p-16">
 
 			<!-- add friends -->
 			<form class="mb-6">

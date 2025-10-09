@@ -14,7 +14,7 @@ function displayGame() {
         return;
     }
     targetDiv.innerHTML = `
-        <div class="flex min-h-screen flex-col items-center p-16">
+        <div class="flex min-h-screen flex-col items-center justify-center p-16">
             <!-- Top Section: Circles with Text -->
             <div class="mb-8 flex w-full max-w-xl justify-between items-center h-full">
                 <!-- Left Circle (Profile) -->
@@ -35,6 +35,12 @@ function displayGame() {
             </div>
             <!-- Bottom Section: Game Canvas -->
             <canvas id="game-canvas" class="rounded-lg bg-black" width="600" height="400"></canvas>
+            <!-- Controls hint below the canvas -->
+            <div id="game-controls" class="mt-4 text-center text-sm text-white">
+                <strong class="mr-2">Controls:</strong>
+                <span class="mr-4">Left: <code class="px-1 py-0.5 bg-gray-800 rounded">w</code> / <code class="px-1 py-0.5 bg-gray-800 rounded">s</code></span>
+                <span>Right: <code class="px-1 py-0.5 bg-gray-800 rounded">o</code> / <code class="px-1 py-0.5 bg-gray-800 rounded">l</code></span>
+            </div>
         </div>
     `;
     initGame();
